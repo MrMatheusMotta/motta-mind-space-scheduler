@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import { Users, Calendar, Settings, DollarSign, MapPin, Clock, Edit, Trash2, Eye, Phone, Mail } from "lucide-react";
+import { Users, Calendar, Settings, DollarSign, MapPin, Clock, Edit, Trash2, Eye, Phone, Mail, FileText, Image, Save } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminPanel = () => {
@@ -120,16 +120,44 @@ const AdminPanel = () => {
     isoladoPresencial: 150,
     address: "Av Cardoso Moreira, 193, Centro, Itaperuna -RJ CEP 28300-000",
     building: "Edifício Rotary, 2º andar, sala 208",
-    phone: "(22) 99999-9999",
-    email: "contato@daianemotta.com",
+    phone: "(22) 99972-3737",
+    email: "psicologadaianesilva@outlook.com",
     crp: "CRP-RJ 52221",
     startTime: "18:00",
     endTime: "21:00",
     workDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
   });
 
+  // Content management state
+  const [siteContent, setSiteContent] = useState({
+    heroTitle: "Terapia Cognitiva Comportamental",
+    heroSubtitle: "Transforme sua vida com acompanhamento profissional especializado em TCC",
+    aboutTitle: "Sobre Daiane Motta",
+    aboutDescription: "Terapeuta Cognitiva Comportamental (TCC) especializada em ansiedade, depressão e transtornos do humor.",
+    aboutExperience: "5+ anos de experiência",
+    aboutSpecialties: "Ansiedade, Depressão, Autoestima, Relacionamentos",
+    aboutEducation: "Formação em Terapia Cognitiva Comportamental",
+    servicesTitle: "Nossos Serviços",
+    testimonialsTitle: "Depoimentos de Pacientes"
+  });
+
+  const [images, setImages] = useState({
+    heroImage: "",
+    aboutImage: "",
+    serviceImages: ["", "", ""]
+  });
+
   const handleSettingsUpdate = () => {
     toast.success("Configurações atualizadas com sucesso!");
+  };
+
+  const handleContentUpdate = () => {
+    toast.success("Conteúdo do site atualizado com sucesso!");
+  };
+
+  const handleImageUpload = (section: string, index?: number) => {
+    // Simulate image upload
+    toast.success("Imagem carregada com sucesso!");
   };
 
   const getStatusColor = (status: string) => {
@@ -160,12 +188,12 @@ const AdminPanel = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold gradient-text mb-4">Painel Administrativo</h1>
             <p className="text-lg text-rose-nude-600">
-              Gerencie clientes, agendamentos e configurações da clínica
+              Gerencie clientes, agendamentos, configurações e conteúdo do site
             </p>
           </div>
 
           <Tabs defaultValue="clients" className="space-y-6">
-            <TabsList className="grid w-full lg:w-fit lg:grid-cols-4 bg-rose-nude-100">
+            <TabsList className="grid w-full lg:w-fit lg:grid-cols-5 bg-rose-nude-100">
               <TabsTrigger value="clients" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
                 <Users className="w-4 h-4 mr-2" />
                 Clientes
@@ -181,6 +209,10 @@ const AdminPanel = () => {
               <TabsTrigger value="financial" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
                 <DollarSign className="w-4 h-4 mr-2" />
                 Financeiro
+              </TabsTrigger>
+              <TabsTrigger value="content" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
+                <FileText className="w-4 h-4 mr-2" />
+                Conteúdo
               </TabsTrigger>
             </TabsList>
 
@@ -623,6 +655,169 @@ const AdminPanel = () => {
                   </Table>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Content Management Tab */}
+            <TabsContent value="content">
+              <div className="space-y-6">
+                {/* Hero Section */}
+                <Card className="border-rose-nude-200">
+                  <CardHeader>
+                    <CardTitle className="text-rose-nude-800 flex items-center">
+                      <FileText className="w-5 h-5 mr-2" />
+                      Seção Principal (Hero)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Título Principal</Label>
+                      <Input
+                        value={siteContent.heroTitle}
+                        onChange={(e) => setSiteContent(prev => ({ ...prev, heroTitle: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Subtítulo</Label>
+                      <Textarea
+                        value={siteContent.heroSubtitle}
+                        onChange={(e) => setSiteContent(prev => ({ ...prev, heroSubtitle: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Imagem Principal</Label>
+                      <div className="flex items-center space-x-2">
+                        <Input type="file" accept="image/*" className="border-rose-nude-200" />
+                        <Button onClick={() => handleImageUpload('hero')} size="sm">
+                          <Image className="w-4 h-4 mr-2" />
+                          Upload
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* About Section */}
+                <Card className="border-rose-nude-200">
+                  <CardHeader>
+                    <CardTitle className="text-rose-nude-800">Seção Sobre Mim</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Título</Label>
+                      <Input
+                        value={siteContent.aboutTitle}
+                        onChange={(e) => setSiteContent(prev => ({ ...prev, aboutTitle: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Descrição</Label>
+                      <Textarea
+                        value={siteContent.aboutDescription}
+                        onChange={(e) => setSiteContent(prev => ({ ...prev, aboutDescription: e.target.value }))}
+                        className="border-rose-nude-200"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-rose-nude-700">Experiência</Label>
+                        <Input
+                          value={siteContent.aboutExperience}
+                          onChange={(e) => setSiteContent(prev => ({ ...prev, aboutExperience: e.target.value }))}
+                          className="border-rose-nude-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-rose-nude-700">Especialidades</Label>
+                        <Input
+                          value={siteContent.aboutSpecialties}
+                          onChange={(e) => setSiteContent(prev => ({ ...prev, aboutSpecialties: e.target.value }))}
+                          className="border-rose-nude-200"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Formação</Label>
+                      <Textarea
+                        value={siteContent.aboutEducation}
+                        onChange={(e) => setSiteContent(prev => ({ ...prev, aboutEducation: e.target.value }))}
+                        className="border-rose-nude-200"
+                        rows={2}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Foto de Perfil</Label>
+                      <div className="flex items-center space-x-2">
+                        <Input type="file" accept="image/*" className="border-rose-nude-200" />
+                        <Button onClick={() => handleImageUpload('about')} size="sm">
+                          <Image className="w-4 h-4 mr-2" />
+                          Upload
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Services Section */}
+                <Card className="border-rose-nude-200">
+                  <CardHeader>
+                    <CardTitle className="text-rose-nude-800">Seção Serviços</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Título da Seção</Label>
+                      <Input
+                        value={siteContent.servicesTitle}
+                        onChange={(e) => setSiteContent(prev => ({ ...prev, servicesTitle: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Imagens dos Serviços</Label>
+                      {[0, 1, 2].map((index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <span className="text-sm text-rose-nude-600 min-w-[100px]">Serviço {index + 1}:</span>
+                          <Input type="file" accept="image/*" className="border-rose-nude-200" />
+                          <Button onClick={() => handleImageUpload('service', index)} size="sm">
+                            <Image className="w-4 h-4 mr-2" />
+                            Upload
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Testimonials Section */}
+                <Card className="border-rose-nude-200">
+                  <CardHeader>
+                    <CardTitle className="text-rose-nude-800">Seção Depoimentos</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Título da Seção</Label>
+                      <Input
+                        value={siteContent.testimonialsTitle}
+                        onChange={(e) => setSiteContent(prev => ({ ...prev, testimonialsTitle: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={handleContentUpdate}
+                    className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Alterações no Conteúdo
+                  </Button>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
