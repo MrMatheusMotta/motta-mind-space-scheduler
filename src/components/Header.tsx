@@ -22,7 +22,7 @@ const Header = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold gradient-text">Daiane Motta</h1>
-            <p className="text-xs text-rose-nude-600">Psicóloga CRP-RJ</p>
+            <p className="text-xs text-rose-nude-600">TCC • CRP-RJ 52221</p>
           </div>
         </Link>
 

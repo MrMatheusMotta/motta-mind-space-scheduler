@@ -1,208 +1,155 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import { Calendar, Clock, MapPin, CreditCard, User, Phone, Mail } from "lucide-react";
+import TestimonialForm from "@/components/TestimonialForm";
+import { User, MessageSquare, Calendar, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    cpf: user?.cpf || ""
+  });
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    toast({
+      title: "Perfil atualizado!",
+      description: "Suas informações foram salvas com sucesso.",
+    });
+  };
 
-  // Mock appointments data
-  const appointments = [
-    {
-      id: 1,
-      service: "Anamnese",
-      type: "Presencial",
-      date: "2024-03-20",
-      time: "19:00",
-      status: "confirmado",
-      price: 160,
-      paid: 80
-    },
-    {
-      id: 2,
-      service: "Acompanhamento Quinzenal",
-      type: "Online",
-      date: "2024-04-03",
-      time: "18:30",
-      status: "agendado",
-      price: 280,
-      paid: 140
-    }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmado': return 'bg-green-100 text-green-800';
-      case 'agendado': return 'bg-blue-100 text-blue-800';
-      case 'cancelado': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold gradient-text mb-4">Meu Perfil</h1>
-            <p className="text-lg text-rose-nude-600">
-              Gerencie suas informações e consultas agendadas
-            </p>
-          </div>
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold gradient-text mb-2">Meu Perfil</h1>
+          <p className="text-rose-nude-600">Gerencie suas informações e compartilhe sua experiência</p>
+        </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Profile Info */}
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 bg-rose-nude-100">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-white">
+              <User className="w-4 h-4 mr-2" />
+              Perfil
+            </TabsTrigger>
+            <TabsTrigger value="testimonial" className="data-[state=active]:bg-white">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Depoimento
+            </TabsTrigger>
+            <TabsTrigger value="appointments" className="data-[state=active]:bg-white">
+              <Calendar className="w-4 h-4 mr-2" />
+              Consultas
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile">
             <Card className="border-rose-nude-200">
               <CardHeader>
-                <CardTitle className="text-rose-nude-800 flex items-center">
-                  <User className="w-5 h-5 mr-2" />
-                  Informações Pessoais
-                </CardTitle>
+                <CardTitle className="text-rose-nude-800">Informações Pessoais</CardTitle>
+                <CardDescription className="text-rose-nude-600">
+                  Mantenha seus dados atualizados para um melhor atendimento.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-rose-nude-600">Nome</p>
-                  <p className="font-medium text-rose-nude-800">{user.name}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm text-rose-nude-600 flex items-center">
-                    <Mail className="w-4 h-4 mr-1" />
-                    Email
-                  </p>
-                  <p className="font-medium text-rose-nude-800">{user.email}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm text-rose-nude-600 flex items-center">
-                    <Phone className="w-4 h-4 mr-1" />
-                    Telefone
-                  </p>
-                  <p className="font-medium text-rose-nude-800">{user.phone}</p>
-                </div>
-                
-                {user.cpf && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-rose-nude-600">CPF</p>
-                    <p className="font-medium text-rose-nude-800">{user.cpf}</p>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name" className="text-rose-nude-700">Nome Completo</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => handleChange("name", e.target.value)}
+                        className="border-rose-nude-200 focus:border-rose-nude-400"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email" className="text-rose-nude-700">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange("email", e.target.value)}
+                        className="border-rose-nude-200 focus:border-rose-nude-400"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone" className="text-rose-nude-700">Telefone</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => handleChange("phone", e.target.value)}
+                        className="border-rose-nude-200 focus:border-rose-nude-400"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cpf" className="text-rose-nude-700">CPF</Label>
+                      <Input
+                        id="cpf"
+                        value={formData.cpf}
+                        onChange={(e) => handleChange("cpf", e.target.value)}
+                        className="border-rose-nude-200 focus:border-rose-nude-400"
+                      />
+                    </div>
                   </div>
-                )}
+                  
+                  <Button type="submit" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Alterações
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <div className="pt-4">
-                  <Badge variant="secondary" className="bg-rose-nude-100 text-rose-nude-800">
-                    {user.role === 'admin' ? 'Administrador' : 'Cliente'}
-                  </Badge>
+          <TabsContent value="testimonial">
+            <TestimonialForm />
+          </TabsContent>
+
+          <TabsContent value="appointments">
+            <Card className="border-rose-nude-200">
+              <CardHeader>
+                <CardTitle className="text-rose-nude-800">Minhas Consultas</CardTitle>
+                <CardDescription className="text-rose-nude-600">
+                  Histórico e agendamentos futuros.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Calendar className="w-16 h-16 text-rose-nude-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-rose-nude-700 mb-2">
+                    Nenhuma consulta agendada
+                  </h3>
+                  <p className="text-rose-nude-600 mb-4">
+                    Você ainda não possui consultas em seu histórico.
+                  </p>
+                  <Button className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white">
+                    Agendar Consulta
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Appointments */}
-            <div className="lg:col-span-2">
-              <Card className="border-rose-nude-200">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-rose-nude-800 flex items-center">
-                      <Calendar className="w-5 h-5 mr-2" />
-                      Minhas Consultas
-                    </CardTitle>
-                    <CardDescription className="text-rose-nude-600">
-                      Histórico e próximas consultas agendadas
-                    </CardDescription>
-                  </div>
-                  <Button 
-                    onClick={() => navigate('/booking')}
-                    className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white"
-                  >
-                    Nova Consulta
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {appointments.length > 0 ? (
-                    <div className="space-y-4">
-                      {appointments.map(appointment => (
-                        <div key={appointment.id} className="border border-rose-nude-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <h4 className="font-semibold text-rose-nude-800">{appointment.service}</h4>
-                              <p className="text-sm text-rose-nude-600">{appointment.type}</p>
-                            </div>
-                            <Badge className={getStatusColor(appointment.status)}>
-                              {appointment.status}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid md:grid-cols-2 gap-4 text-sm">
-                            <div className="flex items-center text-rose-nude-600">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              {new Date(appointment.date).toLocaleDateString('pt-BR')}
-                            </div>
-                            <div className="flex items-center text-rose-nude-600">
-                              <Clock className="w-4 h-4 mr-2" />
-                              {appointment.time}
-                            </div>
-                            <div className="flex items-center text-rose-nude-600">
-                              <MapPin className="w-4 h-4 mr-2" />
-                              {appointment.type}
-                            </div>
-                            <div className="flex items-center text-rose-nude-600">
-                              <CreditCard className="w-4 h-4 mr-2" />
-                              R$ {appointment.paid} / R$ {appointment.price}
-                            </div>
-                          </div>
-
-                          {appointment.type === 'Presencial' && (
-                            <div className="mt-3 p-3 bg-rose-nude-50 rounded-lg border border-rose-nude-200">
-                              <p className="text-sm text-rose-nude-700">
-                                <strong>Local:</strong> Av Cardoso Moreira, 193 - Centro, Itaperuna-RJ<br />
-                                Edifício Rotary, 2º andar, sala 208
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Calendar className="w-12 h-12 text-rose-nude-300 mx-auto mb-4" />
-                      <p className="text-rose-nude-600 mb-4">Você ainda não tem consultas agendadas</p>
-                      <Button 
-                        onClick={() => navigate('/booking')}
-                        className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white"
-                      >
-                        Agendar Primeira Consulta
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Important Info */}
-          <Card className="mt-8 border-rose-nude-200 bg-rose-nude-50">
-            <CardHeader>
-              <CardTitle className="text-rose-nude-800">Políticas Importantes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-rose-nude-700">
-              <p>• Remarcações devem ser feitas com 48h de antecedência</p>
-              <p>• Faltas ou atrasos injustificáveis não têm reembolso</p>
-              <p>• O pagamento de 50% é obrigatório no ato do agendamento</p>
-              <p>• Em caso de dúvidas, entre em contato conosco</p>
-            </CardContent>
-          </Card>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

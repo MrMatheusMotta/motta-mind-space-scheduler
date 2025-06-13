@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,17 +45,32 @@ const Index = () => {
   const testimonials = [
     {
       name: "Maria Silva",
-      text: "Profissional excepcional, muito acolhedora e competente. Recomendo!",
+      text: "A terapia cognitiva comportamental com Daiane mudou minha vida. Aprendi a lidar melhor com a ansiedade e desenvolvi ferramentas práticas para o dia a dia.",
       rating: 5
     },
     {
       name: "João Santos",
-      text: "Ambiente acolhedor e atendimento de qualidade. Me sinto muito bem acompanhado.",
+      text: "Profissional excepcional! As técnicas de TCC que ela ensinou me ajudaram muito a reorganizar meus pensamentos e sentimentos.",
       rating: 5
     },
     {
       name: "Ana Costa",
-      text: "Daiane é uma profissional incrível, me ajudou muito no meu processo de autoconhecimento.",
+      text: "Daiane é uma terapeuta incrível, muito acolhedora e competente. O método TCC realmente funciona quando aplicado com tanto cuidado.",
+      rating: 5
+    },
+    {
+      name: "Carlos Oliveira",
+      text: "Recomendo muito! A abordagem cognitiva comportamental me deu uma nova perspectiva sobre meus problemas e como solucioná-los.",
+      rating: 5
+    },
+    {
+      name: "Beatriz Lima",
+      text: "Ambiente acolhedor e atendimento de qualidade. Me sinto muito bem acompanhada e vejo resultados reais na minha vida.",
+      rating: 5
+    },
+    {
+      name: "Rafael Mendes",
+      text: "A terapia com Daiane me ajudou a entender melhor meus padrões de pensamento e a desenvolver estratégias mais saudáveis.",
       rating: 5
     }
   ];
@@ -73,11 +87,11 @@ const Index = () => {
               Daiane Motta
             </h1>
             <p className="text-xl md:text-2xl text-rose-nude-600 mb-4">
-              Psicóloga Clínica • CRP-RJ 52221
+              Terapeuta Cognitiva Comportamental • CRP-RJ 52221
             </p>
             <p className="text-lg text-rose-nude-700 mb-8 max-w-3xl mx-auto">
-              Oferecendo acompanhamento psicológico com acolhimento, profissionalismo e cuidado. 
-              Atendimento presencial e online para seu bem-estar emocional.
+              Oferecendo terapia cognitiva comportamental com acolhimento, profissionalismo e cuidado. 
+              Atendimento presencial e online para seu bem-estar emocional através de técnicas baseadas em evidências.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -207,7 +221,7 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold gradient-text mb-4">Depoimentos</h2>
             <p className="text-lg text-rose-nude-600">
-              O que nossos pacientes dizem sobre o atendimento
+              O que nossos pacientes dizem sobre a terapia cognitiva comportamental
             </p>
           </div>
           
@@ -236,11 +250,11 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
             <div className="flex items-center space-x-2 text-rose-nude-700">
               <Phone className="w-5 h-5" />
-              <span>(22) 99999-9999</span>
+              <span>(22) 99972-3738</span>
             </div>
             <div className="flex items-center space-x-2 text-rose-nude-700">
               <Mail className="w-5 h-5" />
-              <span>contato@daianemotta.com</span>
+              <span>psicologadaianesilva@outlook.com</span>
             </div>
           </div>
           
@@ -259,7 +273,7 @@ const Index = () => {
       <footer className="bg-rose-nude-800 text-white py-8">
         <div className="container mx-auto px-4 text-center">
           <p className="text-rose-nude-100">
-            © 2024 Daiane Motta - Psicóloga Clínica • CRP-RJ 52221
+            © 2024 Daiane Motta - Terapeuta Cognitiva Comportamental • CRP-RJ 52221
           </p>
           <p className="text-rose-nude-200 text-sm mt-2">
             Todos os direitos reservados
