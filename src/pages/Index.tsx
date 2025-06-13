@@ -1,77 +1,84 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import { Heart, Shield, Clock, MapPin, Phone, Mail, Calendar, Star, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Clock, MapPin, Phone, Mail, Star, Heart, Brain, Users, CheckCircle, Shield, Calendar } from "lucide-react";
 
 const Index = () => {
-  const navigate = useNavigate();
-
   const services = [
     {
       name: "Anamnese",
-      description: "Primeira consulta com avaliação completa",
       price: "R$ 160,00",
-      duration: "60 minutos",
+      description: "Primeira consulta para avaliação completa",
+      duration: "90 minutos",
       type: "presencial"
     },
     {
       name: "Acompanhamento Quinzenal",
-      description: "Sessões a cada duas semanas",
       priceOnline: "R$ 280,00",
       pricePresencial: "R$ 300,00",
-      duration: "50 minutos",
-      type: "ambos"
+      description: "Sessões a cada 15 dias",
+      duration: "50 minutos"
     },
     {
       name: "Acompanhamento Mensal",
-      description: "Sessões mensais de acompanhamento",
       priceOnline: "R$ 380,00",
       pricePresencial: "R$ 400,00",
-      duration: "50 minutos",
-      type: "ambos"
+      description: "Sessões mensais de acompanhamento",
+      duration: "50 minutos"
     },
     {
       name: "Atendimento Isolado",
-      description: "Sessão avulsa conforme necessidade",
       priceOnline: "R$ 120,00",
       pricePresencial: "R$ 150,00",
-      duration: "50 minutos",
-      type: "ambos"
+      description: "Sessão única quando necessário",
+      duration: "50 minutos"
     }
   ];
 
   const testimonials = [
     {
-      name: "Maria Silva",
-      text: "A terapia cognitiva comportamental com Daiane mudou minha vida. Aprendi a lidar melhor com a ansiedade e desenvolvi ferramentas práticas para o dia a dia.",
-      rating: 5
+      name: "Maria Santos",
+      rating: 5,
+      comment: "A Daiane mudou minha vida! Através da TCC consegui superar minha ansiedade e hoje tenho uma qualidade de vida muito melhor.",
+      image: "/placeholder.svg"
     },
     {
-      name: "João Santos",
-      text: "Profissional excepcional! As técnicas de TCC que ela ensinou me ajudaram muito a reorganizar meus pensamentos e sentimentos.",
-      rating: 5
+      name: "João Silva",
+      rating: 5,
+      comment: "Profissional excepcional! Seu conhecimento em TCC é impressionante e sempre me sinto acolhido nas sessões.",
+      image: "/placeholder.svg"
     },
     {
       name: "Ana Costa",
-      text: "Daiane é uma terapeuta incrível, muito acolhedora e competente. O método TCC realmente funciona quando aplicado com tanto cuidado.",
-      rating: 5
+      rating: 5,
+      comment: "Recomendo a todos! Daiane tem uma abordagem muito humana e eficaz. Meu filho autista teve grandes progressos.",
+      image: "/placeholder.svg"
+    }
+  ];
+
+  const features = [
+    {
+      icon: Brain,
+      title: "Terapia Cognitiva Comportamental",
+      description: "Abordagem cientificamente comprovada para diversos transtornos"
     },
     {
-      name: "Carlos Oliveira",
-      text: "Recomendo muito! A abordagem cognitiva comportamental me deu uma nova perspectiva sobre meus problemas e como solucioná-los.",
-      rating: 5
+      icon: Users,
+      title: "Atendimento Especializado",
+      description: "Foco em crianças neuroatípicas e famílias"
     },
     {
-      name: "Beatriz Lima",
-      text: "Ambiente acolhedor e atendimento de qualidade. Me sinto muito bem acompanhada e vejo resultados reais na minha vida.",
-      rating: 5
+      icon: Heart,
+      title: "Acolhimento Humanizado",
+      description: "Ambiente seguro e acolhedor para seu bem-estar"
     },
     {
-      name: "Rafael Mendes",
-      text: "A terapia com Daiane me ajudou a entender melhor meus padrões de pensamento e a desenvolver estratégias mais saudáveis.",
-      rating: 5
+      icon: Shield,
+      title: "Sigilo Profissional",
+      description: "Total confidencialidade em todos os atendimentos"
     }
   ];
 
@@ -80,206 +87,224 @@ const Index = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold gradient-text mb-6">
-              Daiane Motta
-            </h1>
-            <p className="text-xl md:text-2xl text-rose-nude-600 mb-4">
-              Terapeuta Cognitiva Comportamental • CRP-RJ 52221
-            </p>
-            <p className="text-lg text-rose-nude-700 mb-8 max-w-3xl mx-auto">
-              Oferecendo terapia cognitiva comportamental com acolhimento, profissionalismo e cuidado. 
-              Atendimento presencial e online para seu bem-estar emocional através de técnicas baseadas em evidências.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                onClick={() => navigate('/booking')}
-                className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8 py-3 text-lg"
-              >
-                <Calendar className="w-5 h-5 mr-2" />
-                Agendar Consulta
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/register')}
-                className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50 px-8 py-3 text-lg"
-              >
-                Criar Conta
-              </Button>
+      <section className="py-12 md:py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
+              <div className="text-center lg:text-left space-y-6">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-text leading-tight">
+                  Transforme sua vida com a Terapia Cognitiva Comportamental
+                </h1>
+                <p className="text-lg md:text-xl text-rose-nude-600 leading-relaxed">
+                  Sou Daiane Motta, Terapeuta Cognitiva Comportamental especializada em ajudar você a superar desafios emocionais e conquistar uma vida mais equilibrada.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white">
+                    <Link to="/booking">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Agendar Consulta
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50">
+                    <Link to="/about">Conheça Meu Trabalho</Link>
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <div className="bg-gradient-to-br from-rose-nude-200 to-rose-nude-300 rounded-2xl p-6 md:p-8 text-center shadow-xl">
+                  <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-rose-nude-400 to-rose-nude-600 rounded-full mx-auto mb-6 flex items-center justify-center">
+                    <span className="text-white font-bold text-4xl md:text-6xl">DM</span>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-rose-nude-800 mb-2">Daiane Motta</h3>
+                  <p className="text-rose-nude-700 mb-4">Terapeuta Cognitiva Comportamental</p>
+                  <Badge className="bg-rose-nude-500 text-white">CRP-RJ 52221</Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-12 md:py-16 bg-white/50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">Por que escolher meu trabalho?</h2>
+              <p className="text-lg text-rose-nude-600">Comprometimento com sua saúde mental e bem-estar</p>
+            </div>
+            
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {features.map((feature, index) => (
+                <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow text-center">
+                  <CardContent className="p-6">
+                    <feature.icon className="w-12 h-12 text-rose-nude-500 mx-auto mb-4" />
+                    <h3 className="font-semibold text-rose-nude-800 mb-2">{feature.title}</h3>
+                    <p className="text-sm text-rose-nude-600">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-16 px-4 bg-white/50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold gradient-text mb-4">Serviços Oferecidos</h2>
-            <p className="text-lg text-rose-nude-600">
-              Atendimento personalizado para suas necessidades
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {services.map((service, index) => (
-              <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-rose-nude-800">{service.name}</CardTitle>
-                    <Badge className="bg-rose-nude-100 text-rose-nude-700">{service.duration}</Badge>
-                  </div>
-                  <CardDescription className="text-rose-nude-600">
-                    {service.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {service.type === 'presencial' ? (
-                    <p className="text-2xl font-bold text-rose-nude-800">{service.price}</p>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-rose-nude-600">Online:</span>
-                        <span className="font-bold text-rose-nude-800">{service.priceOnline}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-rose-nude-600">Presencial:</span>
-                        <span className="font-bold text-rose-nude-800">{service.pricePresencial}</span>
+      <section className="py-12 md:py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">Serviços Oferecidos</h2>
+              <p className="text-lg text-rose-nude-600">Planos flexíveis para suas necessidades</p>
+            </div>
+            
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {services.map((service, index) => (
+                <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-rose-nude-800 text-lg">{service.name}</CardTitle>
+                    <CardDescription className="text-rose-nude-600">{service.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {service.price && (
+                        <div className="text-2xl font-bold text-rose-nude-700">{service.price}</div>
+                      )}
+                      {service.priceOnline && (
+                        <div className="space-y-1">
+                          <div className="text-lg font-semibold text-rose-nude-700">Online: {service.priceOnline}</div>
+                          <div className="text-lg font-semibold text-rose-nude-700">Presencial: {service.pricePresencial}</div>
+                        </div>
+                      )}
+                      <div className="flex items-center text-sm text-rose-nude-600">
+                        <Clock className="w-4 h-4 mr-2" />
+                        {service.duration}
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Important Information */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <Card className="border-rose-nude-200 bg-rose-nude-50">
-            <CardHeader>
-              <CardTitle className="text-rose-nude-800 flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                Informações Importantes
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="mt-8 p-4 md:p-6 bg-rose-nude-100 rounded-lg">
               <div className="flex items-start space-x-3">
-                <CheckCircle className="w-5 h-5 text-rose-nude-600 mt-0.5" />
-                <p className="text-rose-nude-700">
-                  <strong>Pagamento:</strong> 50% do valor deve ser pago via PIX no ato do agendamento
-                </p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Clock className="w-5 h-5 text-rose-nude-600 mt-0.5" />
-                <p className="text-rose-nude-700">
-                  <strong>Remarcações:</strong> Devem ser solicitadas com pelo menos 48h de antecedência
-                </p>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Shield className="w-5 h-5 text-rose-nude-600 mt-0.5" />
-                <p className="text-rose-nude-700">
-                  <strong>Política de Faltas:</strong> Faltas ou atrasos injustificáveis não terão reembolso
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Location */}
-      <section className="py-16 px-4 bg-white/50">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold gradient-text mb-4">Localização</h2>
-            <p className="text-lg text-rose-nude-600">Atendimento presencial em Itaperuna - RJ</p>
-          </div>
-          
-          <Card className="border-rose-nude-200">
-            <CardContent className="p-6">
-              <div className="flex items-start space-x-4">
-                <MapPin className="w-6 h-6 text-rose-nude-500 mt-1" />
-                <div>
-                  <p className="text-rose-nude-800 font-semibold">Edifício Rotary</p>
-                  <p className="text-rose-nude-700">2º andar, sala 208</p>
-                  <p className="text-rose-nude-600">Av Cardoso Moreira, 193, Centro</p>
-                  <p className="text-rose-nude-600">Itaperuna - RJ, CEP 28300-000</p>
+                <CheckCircle className="w-6 h-6 text-rose-nude-600 mt-1 flex-shrink-0" />
+                <div className="text-sm md:text-base text-rose-nude-800">
+                  <p className="font-semibold mb-2">Condições de Agendamento:</p>
+                  <ul className="space-y-1 text-rose-nude-700">
+                    <li>• Pagamento de 50% via PIX no ato do agendamento</li>
+                    <li>• Remarcações com 48h de antecedência</li>
+                    <li>• Faltas injustificáveis não têm reembolso</li>
+                  </ul>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold gradient-text mb-4">Depoimentos</h2>
-            <p className="text-lg text-rose-nude-600">
-              O que nossos pacientes dizem sobre a terapia cognitiva comportamental
-            </p>
+      {/* Testimonials Section */}
+      <section className="py-12 md:py-16 bg-white/50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">Depoimentos</h2>
+              <p className="text-lg text-rose-nude-600">O que meus pacientes dizem</p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              {testimonials.map((testimonial, index) => (
+                <Card key={index} className="border-rose-nude-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center mb-4">
+                      <img 
+                        src={testimonial.image} 
+                        alt={testimonial.name}
+                        className="w-12 h-12 rounded-full mr-4"
+                      />
+                      <div>
+                        <h4 className="font-semibold text-rose-nude-800">{testimonial.name}</h4>
+                        <div className="flex">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-rose-nude-400 text-rose-nude-400" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-rose-nude-700 text-sm italic">"{testimonial.comment}"</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-rose-nude-200">
-                <CardContent className="p-6">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-rose-nude-400 text-rose-nude-400" />
-                    ))}
-                  </div>
-                  <p className="text-rose-nude-700 mb-4 italic">"{testimonial.text}"</p>
-                  <p className="font-semibold text-rose-nude-800">- {testimonial.name}</p>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-12 md:py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">Informações de Contato</h2>
+              <p className="text-lg text-rose-nude-600">Estou aqui para ajudá-la(o)</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card className="border-rose-nude-200">
+                <CardHeader>
+                  <CardTitle className="text-rose-nude-800 flex items-center">
+                    <MapPin className="w-5 h-5 mr-2" />
+                    Localização
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-rose-nude-700">
+                  <p>Av Cardoso Moreira, 193, Centro</p>
+                  <p>Itaperuna - RJ, CEP 28300-000</p>
+                  <p className="font-medium">Edifício Rotary, 2º andar, sala 208</p>
                 </CardContent>
               </Card>
-            ))}
+              
+              <Card className="border-rose-nude-200">
+                <CardHeader>
+                  <CardTitle className="text-rose-nude-800">Contato</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center text-rose-nude-700">
+                    <Phone className="w-5 h-5 mr-3" />
+                    <span>(22) 99972-3737</span>
+                  </div>
+                  <div className="flex items-center text-rose-nude-700">
+                    <Mail className="w-5 h-5 mr-3" />
+                    <span className="break-all">psicologadaianesilva@outlook.com</span>
+                  </div>
+                  <div className="flex items-center text-rose-nude-700">
+                    <Clock className="w-5 h-5 mr-3" />
+                    <span>Atendimentos: 18h às 21h (dias úteis)</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Contact */}
-      <section className="py-16 px-4 bg-rose-nude-100">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold gradient-text mb-8">Entre em Contato</h2>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
-            <div className="flex items-center space-x-2 text-rose-nude-700">
-              <Phone className="w-5 h-5" />
-              <span>(22) 99972-3738</span>
-            </div>
-            <div className="flex items-center space-x-2 text-rose-nude-700">
-              <Mail className="w-5 h-5" />
-              <span>psicologadaianesilva@outlook.com</span>
-            </div>
-          </div>
-          
-          <div className="mt-8">
-            <Button 
-              onClick={() => navigate('/booking')}
-              className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8 py-3"
-            >
-              Agendar Agora
+      {/* CTA Section */}
+      <section className="py-12 md:py-16 bg-gradient-to-r from-rose-nude-500 to-rose-nude-600">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              Pronto para começar sua transformação?
+            </h2>
+            <p className="text-lg md:text-xl text-rose-nude-100 mb-8">
+              Agende sua consulta hoje e dê o primeiro passo rumo ao seu bem-estar
+            </p>
+            <Button asChild size="lg" className="bg-white text-rose-nude-600 hover:bg-rose-nude-50">
+              <Link to="/register">Começar Agora</Link>
             </Button>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-rose-nude-800 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-rose-nude-100">
-            © 2024 Daiane Motta - Terapeuta Cognitiva Comportamental • CRP-RJ 52221
-          </p>
-          <p className="text-rose-nude-200 text-sm mt-2">
-            Todos os direitos reservados
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

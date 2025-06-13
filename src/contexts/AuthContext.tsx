@@ -1,13 +1,12 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
   id: string;
   name: string;
   email: string;
   phone: string;
-  role: 'client' | 'admin';
-  cpf?: string;
+  role: 'user' | 'admin';
 }
 
 interface AuthContextType {
@@ -28,12 +27,16 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate checking for existing session
+    // Check if user is logged in (from localStorage)
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -42,62 +45,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock login logic
-    if (email === 'admin@daianemotta.com' && password === 'admin123') {
-      const adminUser: User = {
-        id: '1',
-        name: 'Daiane Motta',
-        email: 'admin@daianemotta.com',
-        phone: '(22) 99999-9999',
-        role: 'admin'
-      };
-      setUser(adminUser);
-      localStorage.setItem('user', JSON.stringify(adminUser));
-      setIsLoading(false);
-      return true;
-    } else if (email && password) {
-      const clientUser: User = {
-        id: '2',
-        name: 'Cliente Teste',
-        email: email,
-        phone: '(22) 98888-8888',
-        role: 'client',
-        cpf: '123.456.789-00'
-      };
-      setUser(clientUser);
-      localStorage.setItem('user', JSON.stringify(clientUser));
-      setIsLoading(false);
-      return true;
+    try {
+      // Mock authentication
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check for admin credentials
+      if (email === 'admin@daianemotta.com' && password === 'admin123') {
+        const adminUser: User = {
+          id: 'admin-1',
+          name: 'Daiane Motta',
+          email: 'admin@daianemotta.com',
+          phone: '(22) 99972-3737',
+          role: 'admin'
+        };
+        setUser(adminUser);
+        localStorage.setItem('user', JSON.stringify(adminUser));
+        return true;
+      }
+      
+      // Regular user login
+      if (email && password) {
+        const regularUser: User = {
+          id: '1',
+          name: 'Usuário Teste',
+          email: email,
+          phone: '(22) 99999-9999',
+          role: 'user'
+        };
+        setUser(regularUser);
+        localStorage.setItem('user', JSON.stringify(regularUser));
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
   const register = async (userData: any): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: userData.name,
-      email: userData.email,
-      phone: userData.phone,
-      role: 'client',
-      cpf: userData.cpf
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setIsLoading(false);
-    return true;
+    try {
+      // Mock registration
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newUser: User = {
+        id: Date.now().toString(),
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        role: 'user'
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      return true;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      return false;
+    }
   };
 
   const logout = () => {
@@ -105,8 +111,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user');
   };
 
+  const value: AuthContextType = {
+    user,
+    login,
+    register,
+    logout,
+    isLoading
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
