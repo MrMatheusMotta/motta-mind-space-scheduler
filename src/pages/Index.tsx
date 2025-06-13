@@ -1,41 +1,63 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import { Link } from "react-router-dom";
-import { Calendar, Clock, MapPin, Shield, Heart, Star } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { Heart, Shield, Clock, MapPin, Phone, Mail, Calendar, Star, CheckCircle } from "lucide-react";
 
 const Index = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const services = [
     {
       name: "Anamnese",
-      description: "Primeira consulta detalhada para conhecimento inicial",
+      description: "Primeira consulta com avaliação completa",
       price: "R$ 160,00",
-      icon: Heart
+      duration: "60 minutos",
+      type: "presencial"
     },
     {
       name: "Acompanhamento Quinzenal",
-      description: "Sessões a cada 15 dias para acompanhamento contínuo",
+      description: "Sessões a cada duas semanas",
       priceOnline: "R$ 280,00",
       pricePresencial: "R$ 300,00",
-      icon: Calendar
+      duration: "50 minutos",
+      type: "ambos"
     },
     {
       name: "Acompanhamento Mensal",
-      description: "Sessões mensais para manutenção do bem-estar",
+      description: "Sessões mensais de acompanhamento",
       priceOnline: "R$ 380,00",
       pricePresencial: "R$ 400,00",
-      icon: Clock
+      duration: "50 minutos",
+      type: "ambos"
     },
     {
       name: "Atendimento Isolado",
-      description: "Consulta pontual conforme necessidade",
+      description: "Sessão avulsa conforme necessidade",
       priceOnline: "R$ 120,00",
       pricePresencial: "R$ 150,00",
-      icon: Star
+      duration: "50 minutos",
+      type: "ambos"
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Maria Silva",
+      text: "Profissional excepcional, muito acolhedora e competente. Recomendo!",
+      rating: 5
+    },
+    {
+      name: "João Santos",
+      text: "Ambiente acolhedor e atendimento de qualidade. Me sinto muito bem acompanhado.",
+      rating: 5
+    },
+    {
+      name: "Ana Costa",
+      text: "Daiane é uma profissional incrível, me ajudou muito no meu processo de autoconhecimento.",
+      rating: 5
     }
   ];
 
@@ -44,138 +66,203 @@ const Index = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-6 animate-fade-in">
-            Psicologia com Cuidado
-          </h1>
-          <p className="text-xl text-rose-nude-700 mb-8 leading-relaxed">
-            Bem-vindo ao consultório de <strong>Daiane Motta</strong>. 
-            Aqui você encontra um espaço seguro e acolhedor para cuidar da sua saúde mental.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {user ? (
-              <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8 py-4 rounded-full">
-                <Link to="/booking">Agendar Consulta</Link>
+      <section className="relative py-20 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center">
+            <h1 className="text-5xl md:text-6xl font-bold gradient-text mb-6">
+              Daiane Motta
+            </h1>
+            <p className="text-xl md:text-2xl text-rose-nude-600 mb-4">
+              Psicóloga Clínica • CRP-RJ 52221
+            </p>
+            <p className="text-lg text-rose-nude-700 mb-8 max-w-3xl mx-auto">
+              Oferecendo acompanhamento psicológico com acolhimento, profissionalismo e cuidado. 
+              Atendimento presencial e online para seu bem-estar emocional.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={() => navigate('/booking')}
+                className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8 py-3 text-lg"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                Agendar Consulta
               </Button>
-            ) : (
-              <>
-                <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8 py-4 rounded-full">
-                  <Link to="/register">Começar Agora</Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50 px-8 py-4 rounded-full">
-                  <Link to="/login">Já tenho conta</Link>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-rose-nude-800 mb-4">Serviços Oferecidos</h2>
-          <p className="text-lg text-rose-nude-600">Escolha o acompanhamento ideal para você</p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((service, index) => (
-            <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 bg-rose-nude-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <service.icon className="w-6 h-6 text-rose-nude-600" />
-                </div>
-                <CardTitle className="text-rose-nude-800">{service.name}</CardTitle>
-                <CardDescription className="text-rose-nude-600">
-                  {service.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                {service.price ? (
-                  <p className="text-2xl font-bold text-rose-nude-700">{service.price}</p>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-lg font-semibold text-rose-nude-700">
-                      Online: {service.priceOnline}
-                    </p>
-                    <p className="text-lg font-semibold text-rose-nude-700">
-                      Presencial: {service.pricePresencial}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Important Info Section */}
-      <section className="bg-rose-nude-100 py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="text-3xl font-bold text-rose-nude-800 mb-8 text-center">
-              Informações Importantes
-            </h3>
-            <div className="grid md:grid-cols-2 gap-8">
-              <Card className="border-rose-nude-200">
-                <CardHeader>
-                  <CardTitle className="text-rose-nude-800 flex items-center">
-                    <Shield className="w-5 h-5 mr-2" />
-                    Política de Agendamento
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-rose-nude-700">
-                  <p>• Pagamento de 50% via PIX no ato do agendamento</p>
-                  <p>• Remarcações devem ser feitas com 48h de antecedência</p>
-                  <p>• Faltas ou atrasos injustificáveis não têm reembolso</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-rose-nude-200">
-                <CardHeader>
-                  <CardTitle className="text-rose-nude-800 flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    Localização Presencial
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-rose-nude-700">
-                  <p className="leading-relaxed">
-                    Av Cardoso Moreira, 193<br />
-                    Centro, Itaperuna - RJ<br />
-                    CEP 28300-000<br />
-                    Edifício Rotary, 2º andar, sala 208
-                  </p>
-                </CardContent>
-              </Card>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/register')}
+                className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50 px-8 py-3 text-lg"
+              >
+                Criar Conta
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16 text-center">
-        <h3 className="text-3xl font-bold text-rose-nude-800 mb-6">
-          Pronto para cuidar de você?
-        </h3>
-        <p className="text-lg text-rose-nude-600 mb-8 max-w-2xl mx-auto">
-          Agende sua consulta agora e dê o primeiro passo em direção ao seu bem-estar emocional.
-        </p>
-        {!user && (
-          <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8 py-4 rounded-full">
-            <Link to="/register">Criar Conta Gratuita</Link>
-          </Button>
-        )}
+      {/* Services Section */}
+      <section className="py-16 px-4 bg-white/50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold gradient-text mb-4">Serviços Oferecidos</h2>
+            <p className="text-lg text-rose-nude-600">
+              Atendimento personalizado para suas necessidades
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            {services.map((service, index) => (
+              <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-rose-nude-800">{service.name}</CardTitle>
+                    <Badge className="bg-rose-nude-100 text-rose-nude-700">{service.duration}</Badge>
+                  </div>
+                  <CardDescription className="text-rose-nude-600">
+                    {service.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {service.type === 'presencial' ? (
+                    <p className="text-2xl font-bold text-rose-nude-800">{service.price}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-rose-nude-600">Online:</span>
+                        <span className="font-bold text-rose-nude-800">{service.priceOnline}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-rose-nude-600">Presencial:</span>
+                        <span className="font-bold text-rose-nude-800">{service.pricePresencial}</span>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Important Information */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <Card className="border-rose-nude-200 bg-rose-nude-50">
+            <CardHeader>
+              <CardTitle className="text-rose-nude-800 flex items-center">
+                <Shield className="w-5 h-5 mr-2" />
+                Informações Importantes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <CheckCircle className="w-5 h-5 text-rose-nude-600 mt-0.5" />
+                <p className="text-rose-nude-700">
+                  <strong>Pagamento:</strong> 50% do valor deve ser pago via PIX no ato do agendamento
+                </p>
+              </div>
+              <div className="flex items-start space-x-3">
+                <Clock className="w-5 h-5 text-rose-nude-600 mt-0.5" />
+                <p className="text-rose-nude-700">
+                  <strong>Remarcações:</strong> Devem ser solicitadas com pelo menos 48h de antecedência
+                </p>
+              </div>
+              <div className="flex items-start space-x-3">
+                <Shield className="w-5 h-5 text-rose-nude-600 mt-0.5" />
+                <p className="text-rose-nude-700">
+                  <strong>Política de Faltas:</strong> Faltas ou atrasos injustificáveis não terão reembolso
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Location */}
+      <section className="py-16 px-4 bg-white/50">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold gradient-text mb-4">Localização</h2>
+            <p className="text-lg text-rose-nude-600">Atendimento presencial em Itaperuna - RJ</p>
+          </div>
+          
+          <Card className="border-rose-nude-200">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-4">
+                <MapPin className="w-6 h-6 text-rose-nude-500 mt-1" />
+                <div>
+                  <p className="text-rose-nude-800 font-semibold">Edifício Rotary</p>
+                  <p className="text-rose-nude-700">2º andar, sala 208</p>
+                  <p className="text-rose-nude-600">Av Cardoso Moreira, 193, Centro</p>
+                  <p className="text-rose-nude-600">Itaperuna - RJ, CEP 28300-000</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold gradient-text mb-4">Depoimentos</h2>
+            <p className="text-lg text-rose-nude-600">
+              O que nossos pacientes dizem sobre o atendimento
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="border-rose-nude-200">
+                <CardContent className="p-6">
+                  <div className="flex mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-rose-nude-400 text-rose-nude-400" />
+                    ))}
+                  </div>
+                  <p className="text-rose-nude-700 mb-4 italic">"{testimonial.text}"</p>
+                  <p className="font-semibold text-rose-nude-800">- {testimonial.name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section className="py-16 px-4 bg-rose-nude-100">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-bold gradient-text mb-8">Entre em Contato</h2>
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
+            <div className="flex items-center space-x-2 text-rose-nude-700">
+              <Phone className="w-5 h-5" />
+              <span>(22) 99999-9999</span>
+            </div>
+            <div className="flex items-center space-x-2 text-rose-nude-700">
+              <Mail className="w-5 h-5" />
+              <span>contato@daianemotta.com</span>
+            </div>
+          </div>
+          
+          <div className="mt-8">
+            <Button 
+              onClick={() => navigate('/booking')}
+              className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8 py-3"
+            >
+              Agendar Agora
+            </Button>
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-rose-nude-800 text-white py-8">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-rose-nude-200">
-            © 2024 Daiane Motta - Psicóloga CRP-RJ. Todos os direitos reservados.
+          <p className="text-rose-nude-100">
+            © 2024 Daiane Motta - Psicóloga Clínica • CRP-RJ 52221
           </p>
-          <p className="text-rose-nude-300 mt-2 text-sm">
-            Plataforma de agendamentos online para consultas psicológicas
+          <p className="text-rose-nude-200 text-sm mt-2">
+            Todos os direitos reservados
           </p>
         </div>
       </footer>

@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import { Users, Calendar, Settings, DollarSign, MapPin, Clock } from "lucide-react";
+import { Users, Calendar, Settings, DollarSign, MapPin, Clock, Edit, Trash2, Eye, Phone, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminPanel = () => {
@@ -21,50 +22,91 @@ const AdminPanel = () => {
     return null;
   }
 
-  // Mock data
+  // Mock data expandido
   const [clients] = useState([
     {
       id: 1,
-      name: "Maria Silva",
-      email: "maria@email.com",
+      name: "Maria Silva Santos",
+      email: "maria.silva@email.com",
       phone: "(22) 99999-9999",
       cpf: "123.456.789-00",
-      appointments: 3,
-      lastAppointment: "2024-03-15"
+      birthDate: "1985-03-15",
+      address: "Rua das Flores, 123 - Centro, Itaperuna-RJ",
+      appointments: 8,
+      lastAppointment: "2024-03-15",
+      totalSpent: 1240,
+      status: "ativo"
     },
     {
       id: 2,
-      name: "João Santos",
-      email: "joao@email.com",
+      name: "João Pedro Santos",
+      email: "joao.santos@email.com",
       phone: "(22) 98888-8888",
       cpf: "987.654.321-00",
-      appointments: 1,
-      lastAppointment: "2024-03-10"
+      birthDate: "1990-07-22",
+      address: "Av. Principal, 456 - Niterói, Itaperuna-RJ",
+      appointments: 3,
+      lastAppointment: "2024-03-10",
+      totalSpent: 480,
+      status: "ativo"
+    },
+    {
+      id: 3,
+      name: "Ana Costa Oliveira",
+      email: "ana.costa@email.com",
+      phone: "(22) 97777-7777",
+      cpf: "456.789.123-00",
+      birthDate: "1988-11-08",
+      address: "Rua da Paz, 789 - Jardim Bela Vista, Itaperuna-RJ",
+      appointments: 12,
+      lastAppointment: "2024-03-18",
+      totalSpent: 1920,
+      status: "ativo"
     }
   ]);
 
   const [appointments] = useState([
     {
       id: 1,
-      client: "Maria Silva",
+      client: "Maria Silva Santos",
+      clientId: 1,
       service: "Anamnese",
       type: "Presencial",
       date: "2024-03-20",
       time: "19:00",
       status: "confirmado",
       price: 160,
-      paid: 80
+      paid: 80,
+      paymentMethod: "PIX",
+      notes: "Primeira consulta - ansiedade"
     },
     {
       id: 2,
-      client: "João Santos",
+      client: "João Pedro Santos",
+      clientId: 2,
       service: "Acompanhamento Quinzenal",
       type: "Online",
       date: "2024-03-22",
       time: "18:30",
       status: "agendado",
       price: 280,
-      paid: 140
+      paid: 140,
+      paymentMethod: "PIX",
+      notes: "Sessão de acompanhamento"
+    },
+    {
+      id: 3,
+      client: "Ana Costa Oliveira",
+      clientId: 3,
+      service: "Acompanhamento Mensal",
+      type: "Presencial",
+      date: "2024-03-25",
+      time: "20:00",
+      status: "confirmado",
+      price: 400,
+      paid: 200,
+      paymentMethod: "PIX",
+      notes: "Terapia cognitivo-comportamental"
     }
   ]);
 
@@ -78,8 +120,12 @@ const AdminPanel = () => {
     isoladoPresencial: 150,
     address: "Av Cardoso Moreira, 193, Centro, Itaperuna -RJ CEP 28300-000",
     building: "Edifício Rotary, 2º andar, sala 208",
+    phone: "(22) 99999-9999",
+    email: "contato@daianemotta.com",
+    crp: "CRP-RJ 52221",
     startTime: "18:00",
-    endTime: "21:00"
+    endTime: "21:00",
+    workDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
   });
 
   const handleSettingsUpdate = () => {
@@ -91,6 +137,16 @@ const AdminPanel = () => {
       case 'confirmado': return 'bg-green-100 text-green-800';
       case 'agendado': return 'bg-blue-100 text-blue-800';
       case 'cancelado': return 'bg-red-100 text-red-800';
+      case 'concluido': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getClientStatusColor = (status: string) => {
+    switch (status) {
+      case 'ativo': return 'bg-green-100 text-green-800';
+      case 'inativo': return 'bg-red-100 text-red-800';
+      case 'pendente': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -104,7 +160,7 @@ const AdminPanel = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold gradient-text mb-4">Painel Administrativo</h1>
             <p className="text-lg text-rose-nude-600">
-              Gerencie clientes, agendamentos e configurações
+              Gerencie clientes, agendamentos e configurações da clínica
             </p>
           </div>
 
@@ -122,7 +178,7 @@ const AdminPanel = () => {
                 <Settings className="w-4 h-4 mr-2" />
                 Configurações
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
+              <TabsTrigger value="financial" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
                 <DollarSign className="w-4 h-4 mr-2" />
                 Financeiro
               </TabsTrigger>
@@ -132,42 +188,82 @@ const AdminPanel = () => {
             <TabsContent value="clients">
               <Card className="border-rose-nude-200">
                 <CardHeader>
-                  <CardTitle className="text-rose-nude-800 flex items-center">
-                    <Users className="w-5 h-5 mr-2" />
-                    Clientes Cadastrados
+                  <CardTitle className="text-rose-nude-800 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Clientes Cadastrados ({clients.length})
+                    </div>
+                    <Button className="bg-rose-nude-500 hover:bg-rose-nude-600">
+                      Novo Cliente
+                    </Button>
                   </CardTitle>
                   <CardDescription className="text-rose-nude-600">
-                    Lista de todos os clientes registrados na plataforma
+                    Gestão completa da base de clientes
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {clients.map(client => (
-                      <div key={client.id} className="border border-rose-nude-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="grid md:grid-cols-4 gap-4">
-                          <div>
-                            <p className="font-semibold text-rose-nude-800">{client.name}</p>
-                            <p className="text-sm text-rose-nude-600">{client.email}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-rose-nude-600">Telefone</p>
-                            <p className="font-medium text-rose-nude-800">{client.phone}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-rose-nude-600">CPF</p>
-                            <p className="font-medium text-rose-nude-800">{client.cpf}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-rose-nude-600">Consultas</p>
-                            <p className="font-medium text-rose-nude-800">{client.appointments}</p>
-                            <p className="text-xs text-rose-nude-600">
-                              Última: {new Date(client.lastAppointment).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Contato</TableHead>
+                        <TableHead>Consultas</TableHead>
+                        <TableHead>Última Consulta</TableHead>
+                        <TableHead>Total Gasto</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clients.map(client => (
+                        <TableRow key={client.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-rose-nude-800">{client.name}</p>
+                              <p className="text-sm text-rose-nude-600">CPF: {client.cpf}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center text-sm">
+                                <Phone className="w-4 h-4 mr-1" />
+                                {client.phone}
+                              </div>
+                              <div className="flex items-center text-sm">
+                                <Mail className="w-4 h-4 mr-1" />
+                                {client.email}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">{client.appointments}</TableCell>
+                          <TableCell>
+                            {new Date(client.lastAppointment).toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            R$ {client.totalSpent.toLocaleString('pt-BR')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getClientStatusColor(client.status)}>
+                              {client.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="outline" className="text-red-600">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -176,48 +272,82 @@ const AdminPanel = () => {
             <TabsContent value="appointments">
               <Card className="border-rose-nude-200">
                 <CardHeader>
-                  <CardTitle className="text-rose-nude-800 flex items-center">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Agendamentos
+                  <CardTitle className="text-rose-nude-800 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Agendamentos ({appointments.length})
+                    </div>
+                    <Button className="bg-rose-nude-500 hover:bg-rose-nude-600">
+                      Novo Agendamento
+                    </Button>
                   </CardTitle>
                   <CardDescription className="text-rose-nude-600">
-                    Todos os agendamentos da plataforma
+                    Controle total dos agendamentos da clínica
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {appointments.map(appointment => (
-                      <div key={appointment.id} className="border border-rose-nude-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="font-semibold text-rose-nude-800">{appointment.client}</h4>
-                            <p className="text-sm text-rose-nude-600">{appointment.service} - {appointment.type}</p>
-                          </div>
-                          <Badge className={getStatusColor(appointment.status)}>
-                            {appointment.status}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-4 gap-4 text-sm">
-                          <div className="flex items-center text-rose-nude-600">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            {new Date(appointment.date).toLocaleDateString('pt-BR')}
-                          </div>
-                          <div className="flex items-center text-rose-nude-600">
-                            <Clock className="w-4 h-4 mr-2" />
-                            {appointment.time}
-                          </div>
-                          <div className="flex items-center text-rose-nude-600">
-                            <DollarSign className="w-4 h-4 mr-2" />
-                            R$ {appointment.price}
-                          </div>
-                          <div className="flex items-center text-rose-nude-600">
-                            Pago: R$ {appointment.paid}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Serviço</TableHead>
+                        <TableHead>Data/Hora</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Pagamento</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {appointments.map(appointment => (
+                        <TableRow key={appointment.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-rose-nude-800">{appointment.client}</p>
+                              <p className="text-sm text-rose-nude-600">{appointment.notes}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{appointment.service}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p>{new Date(appointment.date).toLocaleDateString('pt-BR')}</p>
+                              <p className="text-sm text-rose-nude-600">{appointment.time}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{appointment.type}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">R$ {appointment.price}</p>
+                              <p className="text-sm text-green-600">Pago: R$ {appointment.paid}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">
+                              {appointment.paymentMethod}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(appointment.status)}>
+                              {appointment.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="outline" className="text-red-600">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -312,10 +442,37 @@ const AdminPanel = () => {
                   <CardHeader>
                     <CardTitle className="text-rose-nude-800 flex items-center">
                       <MapPin className="w-5 h-5 mr-2" />
-                      Localização e Horários
+                      Informações da Clínica
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">CRP</Label>
+                      <Input
+                        value={settings.crp}
+                        onChange={(e) => setSettings(prev => ({ ...prev, crp: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Telefone</Label>
+                      <Input
+                        value={settings.phone}
+                        onChange={(e) => setSettings(prev => ({ ...prev, phone: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">E-mail</Label>
+                      <Input
+                        value={settings.email}
+                        onChange={(e) => setSettings(prev => ({ ...prev, email: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label className="text-rose-nude-700">Endereço</Label>
                       <Input
@@ -368,15 +525,16 @@ const AdminPanel = () => {
               </div>
             </TabsContent>
 
-            {/* Analytics Tab */}
-            <TabsContent value="analytics">
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Financial Tab */}
+            <TabsContent value="financial">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <Card className="border-rose-nude-200">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-rose-nude-600">Receita Total</p>
-                        <p className="text-2xl font-bold text-rose-nude-800">R$ 1.240</p>
+                        <p className="text-2xl font-bold text-rose-nude-800">R$ 3.640</p>
+                        <p className="text-sm text-green-600">+15% este mês</p>
                       </div>
                       <DollarSign className="w-8 h-8 text-rose-nude-500" />
                     </div>
@@ -387,10 +545,11 @@ const AdminPanel = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-rose-nude-600">Clientes Ativos</p>
-                        <p className="text-2xl font-bold text-rose-nude-800">12</p>
+                        <p className="text-sm text-rose-nude-600">Pagamentos Pendentes</p>
+                        <p className="text-2xl font-bold text-rose-nude-800">R$ 420</p>
+                        <p className="text-sm text-yellow-600">3 clientes</p>
                       </div>
-                      <Users className="w-8 h-8 text-rose-nude-500" />
+                      <Clock className="w-8 h-8 text-rose-nude-500" />
                     </div>
                   </CardContent>
                 </Card>
@@ -400,7 +559,8 @@ const AdminPanel = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-rose-nude-600">Consultas Este Mês</p>
-                        <p className="text-2xl font-bold text-rose-nude-800">8</p>
+                        <p className="text-2xl font-bold text-rose-nude-800">23</p>
+                        <p className="text-sm text-green-600">+8% vs mês anterior</p>
                       </div>
                       <Calendar className="w-8 h-8 text-rose-nude-500" />
                     </div>
@@ -412,13 +572,57 @@ const AdminPanel = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-rose-nude-600">Taxa de Ocupação</p>
-                        <p className="text-2xl font-bold text-rose-nude-800">75%</p>
+                        <p className="text-2xl font-bold text-rose-nude-800">87%</p>
+                        <p className="text-sm text-green-600">Excelente</p>
                       </div>
-                      <Clock className="w-8 h-8 text-rose-nude-500" />
+                      <Users className="w-8 h-8 text-rose-nude-500" />
                     </div>
                   </CardContent>
                 </Card>
               </div>
+
+              <Card className="border-rose-nude-200">
+                <CardHeader>
+                  <CardTitle className="text-rose-nude-800">Relatório Financeiro Detalhado</CardTitle>
+                  <CardDescription className="text-rose-nude-600">
+                    Acompanhe o desempenho financeiro da clínica
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Serviço</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Valor Total</TableHead>
+                        <TableHead>Valor Pago</TableHead>
+                        <TableHead>Pendente</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {appointments.map(appointment => (
+                        <TableRow key={appointment.id}>
+                          <TableCell className="font-medium">{appointment.client}</TableCell>
+                          <TableCell>{appointment.service}</TableCell>
+                          <TableCell>{new Date(appointment.date).toLocaleDateString('pt-BR')}</TableCell>
+                          <TableCell className="font-medium">R$ {appointment.price}</TableCell>
+                          <TableCell className="text-green-600">R$ {appointment.paid}</TableCell>
+                          <TableCell className="text-orange-600">
+                            R$ {appointment.price - appointment.paid}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(appointment.status)}>
+                              {appointment.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
