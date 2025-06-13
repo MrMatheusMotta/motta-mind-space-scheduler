@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,31 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom rosa nude palette
+				'rose-nude': {
+					50: '#fef7f5',
+					100: '#fdeee8',
+					200: '#f9dcd0',
+					300: '#f4c2ad',
+					400: '#ed9f85',
+					500: '#e3806a',
+					600: '#cf6550',
+					700: '#ad5142',
+					800: '#8f453b',
+					900: '#773d35',
+				},
+				'nude': {
+					50: '#faf8f7',
+					100: '#f2eeeb',
+					200: '#e8ddd6',
+					300: '#d7c4b8',
+					400: '#c5a796',
+					500: '#b5917d',
+					600: '#a07c6f',
+					700: '#86675d',
+					800: '#6e574f',
+					900: '#5a4943',
 				}
 			},
 			borderRadius: {
@@ -84,11 +110,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.5s ease-out'
 			}
 		}
 	},
