@@ -23,13 +23,13 @@ const Login = () => {
       return;
     }
 
-    const success = await login(email, password);
+    const result = await login(email, password);
     
-    if (success) {
+    if (result.success) {
       toast.success("Login realizado com sucesso!");
       navigate("/");
     } else {
-      toast.error("Email ou senha incorretos");
+      toast.error(result.error || "Email ou senha incorretos");
     }
   };
 
@@ -89,12 +89,10 @@ const Login = () => {
               </p>
             </div>
 
-            {/* Demo credentials */}
             <div className="mt-6 p-4 bg-rose-nude-50 rounded-lg border border-rose-nude-200">
-              <p className="text-sm font-medium text-rose-nude-800 mb-2">Credenciais de demonstração:</p>
+              <p className="text-sm font-medium text-rose-nude-800 mb-2">Conta de demonstração:</p>
               <p className="text-xs text-rose-nude-600">
-                <strong>Admin:</strong> admin@daianemotta.com / admin123<br />
-                <strong>Cliente:</strong> qualquer email válido / qualquer senha
+                <strong>Admin:</strong> admin@daianemotta.com / senha123
               </p>
             </div>
           </CardContent>

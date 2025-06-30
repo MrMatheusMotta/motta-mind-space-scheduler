@@ -1,20 +1,32 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 
-interface User {
+interface AuthUser {
   id: string;
-  name: string;
   email: string;
-  phone: string;
+  full_name?: string;
+  phone?: string;
+  cpf?: string;
   role: 'user' | 'admin';
 }
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: any) => Promise<boolean>;
-  logout: () => void;
+  user: AuthUser | null;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   isLoading: boolean;
+}
+
+interface RegisterData {
+  email: string;
+  password: string;
+  full_name: string;
+  phone: string;
+  cpf: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,7 +34,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
 };
@@ -32,87 +44,128 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in (from localStorage)
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
+    // Configurar listener de mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        setSession(session);
+        
+        if (session?.user) {
+          // Buscar dados do perfil do usuário
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              const isAdmin = session.user.email === 'admin@daianemotta.com';
+              
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                full_name: profile?.full_name || '',
+                phone: profile?.phone || '',
+                cpf: profile?.cpf || '',
+                role: isAdmin ? 'admin' : 'user'
+              });
+            } catch (error) {
+              console.error('Erro ao buscar perfil:', error);
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                role: session.user.email === 'admin@daianemotta.com' ? 'admin' : 'user'
+              });
+            }
+          }, 0);
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Verificar sessão existente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (!session) {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Mock authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check for admin credentials
-      if (email === 'admin@daianemotta.com' && password === 'admin123') {
-        const adminUser: User = {
-          id: 'admin-1',
-          name: 'Daiane Motta',
-          email: 'admin@daianemotta.com',
-          phone: '(22) 99972-3737',
-          role: 'admin'
-        };
-        setUser(adminUser);
-        localStorage.setItem('user', JSON.stringify(adminUser));
-        return true;
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
       }
-      
-      // Regular user login
-      if (email && password) {
-        const regularUser: User = {
-          id: '1',
-          name: 'Usuário Teste',
-          email: email,
-          phone: '(22) 99999-9999',
-          role: 'user'
-        };
-        setUser(regularUser);
-        localStorage.setItem('user', JSON.stringify(regularUser));
-        return true;
-      }
-      
-      return false;
+
+      return { success: true };
     } catch (error) {
-      console.error('Login failed:', error);
-      return false;
+      return { success: false, error: 'Erro inesperado durante o login' };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const register = async (userData: any): Promise<boolean> => {
+  const register = async (userData: RegisterData): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Mock registration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsLoading(true);
+      const redirectUrl = `${window.location.origin}/`;
       
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: userData.name,
+      const { data, error } = await supabase.auth.signUp({
         email: userData.email,
-        phone: userData.phone,
-        role: 'user'
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      return true;
+        password: userData.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: userData.full_name,
+            phone: userData.phone,
+            cpf: userData.cpf,
+          }
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
     } catch (error) {
-      console.error('Registration failed:', error);
-      return false;
+      return { success: false, error: 'Erro inesperado durante o cadastro' };
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Erro durante logout:', error);
+    }
   };
 
   const value: AuthContextType = {
     user,
+    session,
     login,
     register,
     logout,

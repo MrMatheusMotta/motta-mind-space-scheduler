@@ -11,7 +11,7 @@ import Header from "@/components/Header";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     email: "",
     phone: "",
     cpf: "",
@@ -44,7 +44,7 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.phone || !formData.cpf || !formData.password) {
+    if (!formData.full_name || !formData.email || !formData.phone || !formData.cpf || !formData.password) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -54,18 +54,29 @@ const Register = () => {
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+
     if (!validateCPF(formData.cpf)) {
       toast.error("CPF inválido");
       return;
     }
 
-    const success = await register(formData);
+    const result = await register({
+      email: formData.email,
+      password: formData.password,
+      full_name: formData.full_name,
+      phone: formData.phone,
+      cpf: formData.cpf
+    });
     
-    if (success) {
-      toast.success("Conta criada com sucesso!");
-      navigate("/");
+    if (result.success) {
+      toast.success("Conta criada com sucesso! Verifique seu email para confirmar a conta.");
+      navigate("/login");
     } else {
-      toast.error("Erro ao criar conta. Tente novamente.");
+      toast.error(result.error || "Erro ao criar conta. Tente novamente.");
     }
   };
 
@@ -84,13 +95,13 @@ const Register = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-rose-nude-700">Nome Completo *</Label>
+                <Label htmlFor="full_name" className="text-rose-nude-700">Nome Completo *</Label>
                 <Input
-                  id="name"
-                  name="name"
+                  id="full_name"
+                  name="full_name"
                   type="text"
                   placeholder="Seu nome completo"
-                  value={formData.name}
+                  value={formData.full_name}
                   onChange={handleChange}
                   className="border-rose-nude-200 focus:border-rose-nude-400"
                   required
@@ -145,7 +156,7 @@ const Register = () => {
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Mínimo 6 caracteres"
                   value={formData.password}
                   onChange={handleChange}
                   className="border-rose-nude-200 focus:border-rose-nude-400"
@@ -159,7 +170,7 @@ const Register = () => {
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Digite a senha novamente"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className="border-rose-nude-200 focus:border-rose-nude-400"
@@ -187,7 +198,7 @@ const Register = () => {
 
             <div className="mt-4 p-3 bg-rose-nude-50 rounded-lg border border-rose-nude-200">
               <p className="text-xs text-rose-nude-600">
-                * Campos obrigatórios. Suas informações são necessárias para evitar fraudes e garantir a qualidade do atendimento.
+                * Campos obrigatórios. Suas informações são necessárias para garantir a qualidade do atendimento.
               </p>
             </div>
           </CardContent>

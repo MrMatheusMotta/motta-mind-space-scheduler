@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import Header from "@/components/Header";
 import TestimonialForm from "@/components/TestimonialForm";
 import { User, Settings, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -22,14 +23,44 @@ const Profile = () => {
   }
 
   const [profileData, setProfileData] = useState({
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
+    full_name: user.full_name || "",
+    email: user.email || "",
+    phone: user.phone || "",
+    cpf: user.cpf || "",
   });
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
+  useEffect(() => {
+    setProfileData({
+      full_name: user.full_name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      cpf: user.cpf || "",
+    });
+  }, [user]);
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Perfil atualizado com sucesso!");
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileData.full_name,
+          phone: profileData.phone,
+          cpf: profileData.cpf,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Perfil atualizado com sucesso!");
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      toast.error("Erro ao atualizar perfil. Tente novamente.");
+    }
   };
 
   return (
@@ -72,11 +103,11 @@ const Profile = () => {
                 <CardContent>
                   <form onSubmit={handleProfileUpdate} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-rose-nude-700">Nome Completo</Label>
+                      <Label htmlFor="full_name" className="text-rose-nude-700">Nome Completo</Label>
                       <Input
-                        id="name"
-                        value={profileData.name}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                        id="full_name"
+                        value={profileData.full_name}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, full_name: e.target.value }))}
                         className="border-rose-nude-200"
                       />
                     </div>
@@ -87,9 +118,10 @@ const Profile = () => {
                         id="email"
                         type="email"
                         value={profileData.email}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                        className="border-rose-nude-200"
+                        disabled
+                        className="border-rose-nude-200 bg-gray-50"
                       />
+                      <p className="text-xs text-rose-nude-500">O email não pode ser alterado</p>
                     </div>
 
                     <div className="space-y-2">
@@ -98,6 +130,16 @@ const Profile = () => {
                         id="phone"
                         value={profileData.phone}
                         onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="cpf" className="text-rose-nude-700">CPF</Label>
+                      <Input
+                        id="cpf"
+                        value={profileData.cpf}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, cpf: e.target.value }))}
                         className="border-rose-nude-200"
                       />
                     </div>
