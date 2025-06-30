@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Users, Calendar, Settings, DollarSign, MapPin, Clock, Edit, Trash2, Eye, Phone, Mail, FileText, Image, Save } from "lucide-react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AdminPanel = () => {
   const { user } = useAuth();
@@ -111,6 +112,7 @@ const AdminPanel = () => {
   ]);
 
   const [settings, setSettings] = useState({
+    // Valores dos serviços
     anamnese: 160,
     quinzenalOnline: 280,
     quinzenalPresencial: 300,
@@ -118,14 +120,34 @@ const AdminPanel = () => {
     mensalPresencial: 400,
     isoladoOnline: 120,
     isoladoPresencial: 150,
+    
+    // Informações da clínica
     address: "Av Cardoso Moreira, 193, Centro, Itaperuna -RJ CEP 28300-000",
     building: "Edifício Rotary, 2º andar, sala 208",
     phone: "(22) 99972-3737",
     email: "psicologadaianesilva@outlook.com",
     crp: "CRP-RJ 52221",
+    
+    // Horários de funcionamento
     startTime: "18:00",
     endTime: "21:00",
-    workDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    workDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+    
+    // Configurações de pagamento
+    pixKey: "12345678900",
+    pixKeyType: "cpf",
+    pixQrCode: "",
+    anticipationPercentage: 50,
+    
+    // Configurações de agendamento
+    slotDuration: 60,
+    bufferTime: 0,
+    maxAdvanceDays: 30,
+    
+    // Mensagens automáticas
+    confirmationMessage: "Sua consulta foi confirmada! Nos vemos em breve.",
+    reminderMessage: "Lembrete: Você tem uma consulta agendada para amanhã às {time}.",
+    cancellationMessage: "Sua consulta foi cancelada. Entre em contato para reagendar."
   });
 
   // Content management state
@@ -147,6 +169,17 @@ const AdminPanel = () => {
     serviceImages: ["", "", ""]
   });
 
+  // Configurações específicas para horários
+  const [scheduleSettings, setScheduleSettings] = useState({
+    monday: { enabled: true, start: "18:00", end: "21:00", slots: ["18:00", "19:00", "20:00"] },
+    tuesday: { enabled: true, start: "18:00", end: "21:00", slots: ["18:00", "19:00", "20:00"] },
+    wednesday: { enabled: true, start: "18:00", end: "21:00", slots: ["18:00", "19:00", "20:00"] },
+    thursday: { enabled: true, start: "18:00", end: "21:00", slots: ["18:00", "19:00", "20:00"] },
+    friday: { enabled: true, start: "18:00", end: "21:00", slots: ["18:00", "19:00", "20:00"] },
+    saturday: { enabled: false, start: "09:00", end: "12:00", slots: [] },
+    sunday: { enabled: false, start: "09:00", end: "12:00", slots: [] }
+  });
+
   const handleSettingsUpdate = () => {
     toast.success("Configurações atualizadas com sucesso!");
   };
@@ -158,6 +191,30 @@ const AdminPanel = () => {
   const handleImageUpload = (section: string, index?: number) => {
     // Simulate image upload
     toast.success("Imagem carregada com sucesso!");
+  };
+
+  const handleScheduleUpdate = () => {
+    toast.success("Horários atualizados com sucesso!");
+  };
+
+  const addTimeSlot = (day: string, time: string) => {
+    setScheduleSettings(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day as keyof typeof prev],
+        slots: [...prev[day as keyof typeof prev].slots, time].sort()
+      }
+    }));
+  };
+
+  const removeTimeSlot = (day: string, time: string) => {
+    setScheduleSettings(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day as keyof typeof prev],
+        slots: prev[day as keyof typeof prev].slots.filter(slot => slot !== time)
+      }
+    }));
   };
 
   const getStatusColor = (status: string) => {
@@ -188,12 +245,12 @@ const AdminPanel = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold gradient-text mb-4">Painel Administrativo</h1>
             <p className="text-lg text-rose-nude-600">
-              Gerencie clientes, agendamentos, configurações e conteúdo do site
+              Gerencie clientes, agendamentos, horários, valores e conteúdo do site
             </p>
           </div>
 
           <Tabs defaultValue="clients" className="space-y-6">
-            <TabsList className="grid w-full lg:w-fit lg:grid-cols-5 bg-rose-nude-100">
+            <TabsList className="grid w-full lg:w-fit lg:grid-cols-7 bg-rose-nude-100">
               <TabsTrigger value="clients" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
                 <Users className="w-4 h-4 mr-2" />
                 Clientes
@@ -202,9 +259,17 @@ const AdminPanel = () => {
                 <Calendar className="w-4 h-4 mr-2" />
                 Agendamentos
               </TabsTrigger>
+              <TabsTrigger value="schedule" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
+                <Clock className="w-4 h-4 mr-2" />
+                Horários
+              </TabsTrigger>
               <TabsTrigger value="settings" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
                 <Settings className="w-4 h-4 mr-2" />
                 Configurações
+              </TabsTrigger>
+              <TabsTrigger value="payment" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
+                <DollarSign className="w-4 h-4 mr-2" />
+                Pagamento
               </TabsTrigger>
               <TabsTrigger value="financial" className="data-[state=active]:bg-rose-nude-500 data-[state=active]:text-white">
                 <DollarSign className="w-4 h-4 mr-2" />
@@ -384,19 +449,159 @@ const AdminPanel = () => {
               </Card>
             </TabsContent>
 
-            {/* Settings Tab */}
+            {/* Nova aba de Horários */}
+            <TabsContent value="schedule">
+              <Card className="border-rose-nude-200">
+                <CardHeader>
+                  <CardTitle className="text-rose-nude-800 flex items-center">
+                    <Clock className="w-5 h-5 mr-2" />
+                    Gestão de Horários de Atendimento
+                  </CardTitle>
+                  <CardDescription className="text-rose-nude-600">
+                    Configure os dias e horários disponíveis para agendamento
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {Object.entries(scheduleSettings).map(([day, config]) => (
+                    <Card key={day} className="border-rose-nude-100">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg capitalize text-rose-nude-800">
+                            {day === 'monday' ? 'Segunda-feira' :
+                             day === 'tuesday' ? 'Terça-feira' :
+                             day === 'wednesday' ? 'Quarta-feira' :
+                             day === 'thursday' ? 'Quinta-feira' :
+                             day === 'friday' ? 'Sexta-feira' :
+                             day === 'saturday' ? 'Sábado' : 'Domingo'}
+                          </CardTitle>
+                          <div className="flex items-center space-x-2">
+                            <Label className="text-sm">Ativo</Label>
+                            <input
+                              type="checkbox"
+                              checked={config.enabled}
+                              onChange={(e) => setScheduleSettings(prev => ({
+                                ...prev,
+                                [day]: { ...config, enabled: e.target.checked }
+                              }))}
+                              className="rounded"
+                            />
+                          </div>
+                        </div>
+                      </CardHeader>
+                      {config.enabled && (
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-sm text-rose-nude-700">Início</Label>
+                              <Input
+                                type="time"
+                                value={config.start}
+                                onChange={(e) => setScheduleSettings(prev => ({
+                                  ...prev,
+                                  [day]: { ...config, start: e.target.value }
+                                }))}
+                                className="border-rose-nude-200"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm text-rose-nude-700">Fim</Label>
+                              <Input
+                                type="time"
+                                value={config.end}
+                                onChange={(e) => setScheduleSettings(prev => ({
+                                  ...prev,
+                                  [day]: { ...config, end: e.target.value }
+                                }))}
+                                className="border-rose-nude-200"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <Label className="text-sm text-rose-nude-700 mb-2 block">
+                              Horários Disponíveis ({config.slots.length})
+                            </Label>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {config.slots.map((slot) => (
+                                <Badge 
+                                  key={slot} 
+                                  variant="secondary" 
+                                  className="bg-rose-nude-100 text-rose-nude-800 flex items-center gap-1"
+                                >
+                                  {slot}
+                                  <button
+                                    onClick={() => removeTimeSlot(day, slot)}
+                                    className="ml-1 text-red-600 hover:text-red-800"
+                                  >
+                                    ×
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <Input
+                                type="time"
+                                placeholder="Novo horário"
+                                className="border-rose-nude-200 flex-1"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const input = e.target as HTMLInputElement;
+                                    if (input.value && !config.slots.includes(input.value)) {
+                                      addTimeSlot(day, input.value);
+                                      input.value = '';
+                                    }
+                                  }
+                                }}
+                              />
+                              <Button
+                                size="sm"
+                                onClick={(e) => {
+                                  const input = (e.target as HTMLElement).parentElement?.querySelector('input') as HTMLInputElement;
+                                  if (input?.value && !config.slots.includes(input.value)) {
+                                    addTimeSlot(day, input.value);
+                                    input.value = '';
+                                  }
+                                }}
+                                className="bg-rose-nude-500 hover:bg-rose-nude-600"
+                              >
+                                Adicionar
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  ))}
+                  
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      onClick={handleScheduleUpdate}
+                      className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8"
+                    >
+                      Salvar Horários
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Settings Tab atualizada */}
             <TabsContent value="settings">
               <div className="grid lg:grid-cols-2 gap-6">
+                {/* Valores dos Serviços */}
                 <Card className="border-rose-nude-200">
                   <CardHeader>
                     <CardTitle className="text-rose-nude-800 flex items-center">
                       <DollarSign className="w-5 h-5 mr-2" />
                       Valores dos Serviços
                     </CardTitle>
+                    <CardDescription>
+                      Ajuste os preços de todos os serviços oferecidos
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-rose-nude-700">Anamnese</Label>
+                      <Label className="text-rose-nude-700">Anamnese (R$)</Label>
                       <Input
                         type="number"
                         value={settings.anamnese}
@@ -407,7 +612,7 @@ const AdminPanel = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Quinzenal Online</Label>
+                        <Label className="text-rose-nude-700">Quinzenal Online (R$)</Label>
                         <Input
                           type="number"
                           value={settings.quinzenalOnline}
@@ -416,7 +621,7 @@ const AdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Quinzenal Presencial</Label>
+                        <Label className="text-rose-nude-700">Quinzenal Presencial (R$)</Label>
                         <Input
                           type="number"
                           value={settings.quinzenalPresencial}
@@ -428,7 +633,7 @@ const AdminPanel = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Mensal Online</Label>
+                        <Label className="text-rose-nude-700">Mensal Online (R$)</Label>
                         <Input
                           type="number"
                           value={settings.mensalOnline}
@@ -437,7 +642,7 @@ const AdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Mensal Presencial</Label>
+                        <Label className="text-rose-nude-700">Mensal Presencial (R$)</Label>
                         <Input
                           type="number"
                           value={settings.mensalPresencial}
@@ -449,7 +654,7 @@ const AdminPanel = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Isolado Online</Label>
+                        <Label className="text-rose-nude-700">Isolado Online (R$)</Label>
                         <Input
                           type="number"
                           value={settings.isoladoOnline}
@@ -458,7 +663,7 @@ const AdminPanel = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Isolado Presencial</Label>
+                        <Label className="text-rose-nude-700">Isolado Presencial (R$)</Label>
                         <Input
                           type="number"
                           value={settings.isoladoPresencial}
@@ -467,9 +672,25 @@ const AdminPanel = () => {
                         />
                       </div>
                     </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Porcentagem de Antecipação (%)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={settings.anticipationPercentage}
+                        onChange={(e) => setSettings(prev => ({ ...prev, anticipationPercentage: Number(e.target.value) }))}
+                        className="border-rose-nude-200"
+                      />
+                      <p className="text-xs text-rose-nude-600">
+                        Valor que deve ser pago no ato do agendamento
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
 
+                {/* Informações da Clínica */}
                 <Card className="border-rose-nude-200">
                   <CardHeader>
                     <CardTitle className="text-rose-nude-800 flex items-center">
@@ -523,25 +744,41 @@ const AdminPanel = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Início dos Atendimentos</Label>
-                        <Input
-                          type="time"
-                          value={settings.startTime}
-                          onChange={(e) => setSettings(prev => ({ ...prev, startTime: e.target.value }))}
-                          className="border-rose-nude-200"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-rose-nude-700">Fim dos Atendimentos</Label>
-                        <Input
-                          type="time"
-                          value={settings.endTime}
-                          onChange={(e) => setSettings(prev => ({ ...prev, endTime: e.target.value }))}
-                          className="border-rose-nude-200"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Duração das Consultas (min)</Label>
+                      <Select value={settings.slotDuration.toString()} onValueChange={(value) => setSettings(prev => ({ ...prev, slotDuration: Number(value) }))}>
+                        <SelectTrigger className="border-rose-nude-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30 minutos</SelectItem>
+                          <SelectItem value="45">45 minutos</SelectItem>
+                          <SelectItem value="60">60 minutos</SelectItem>
+                          <SelectItem value="90">90 minutos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Intervalo entre consultas (min)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={settings.bufferTime}
+                        onChange={(e) => setSettings(prev => ({ ...prev, bufferTime: Number(e.target.value) }))}
+                        className="border-rose-nude-200"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Máximo de dias para agendamento</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={settings.maxAdvanceDays}
+                        onChange={(e) => setSettings(prev => ({ ...prev, maxAdvanceDays: Number(e.target.value) }))}
+                        className="border-rose-nude-200"
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -553,6 +790,175 @@ const AdminPanel = () => {
                   className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8"
                 >
                   Salvar Configurações
+                </Button>
+              </div>
+            </TabsContent>
+
+            {/* Nova aba de Pagamento */}
+            <TabsContent value="payment">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <Card className="border-rose-nude-200">
+                  <CardHeader>
+                    <CardTitle className="text-rose-nude-800">Configurações PIX</CardTitle>
+                    <CardDescription>
+                      Configure a chave PIX e QR Code para pagamentos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Tipo de Chave PIX</Label>
+                      <Select value={settings.pixKeyType} onValueChange={(value) => setSettings(prev => ({ ...prev, pixKeyType: value }))}>
+                        <SelectTrigger className="border-rose-nude-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cpf">CPF</SelectItem>
+                          <SelectItem value="cnpj">CNPJ</SelectItem>
+                          <SelectItem value="email">E-mail</SelectItem>
+                          <SelectItem value="phone">Telefone</SelectItem>
+                          <SelectItem value="random">Chave Aleatória</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Chave PIX</Label>
+                      <Input
+                        value={settings.pixKey}
+                        onChange={(e) => setSettings(prev => ({ ...prev, pixKey: e.target.value }))}
+                        className="border-rose-nude-200"
+                        placeholder="Digite sua chave PIX"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">QR Code PIX</Label>
+                      <div className="border-2 border-dashed border-rose-nude-200 rounded-lg p-6 text-center">
+                        {settings.pixQrCode ? (
+                          <div className="space-y-2">
+                            <img src={settings.pixQrCode} alt="QR Code PIX" className="mx-auto max-w-48" />
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setSettings(prev => ({ ...prev, pixQrCode: '' }))}
+                            >
+                              Remover QR Code
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Image className="w-12 h-12 mx-auto text-rose-nude-400" />
+                            <p className="text-sm text-rose-nude-600">QR Code não configurado</p>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = (e) => {
+                                    setSettings(prev => ({ ...prev, pixQrCode: e.target?.result as string }));
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              className="border-rose-nude-200"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-rose-nude-200">
+                  <CardHeader>
+                    <CardTitle className="text-rose-nude-800">Mensagens Automáticas</CardTitle>
+                    <CardDescription>
+                      Configure as mensagens enviadas automaticamente
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Mensagem de Confirmação</Label>
+                      <Textarea
+                        value={settings.confirmationMessage}
+                        onChange={(e) => setSettings(prev => ({ ...prev, confirmationMessage: e.target.value }))}
+                        className="border-rose-nude-200"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Mensagem de Lembrete</Label>
+                      <Textarea
+                        value={settings.reminderMessage}
+                        onChange={(e) => setSettings(prev => ({ ...prev, reminderMessage: e.target.value }))}
+                        className="border-rose-nude-200"
+                        rows={3}
+                      />
+                      <p className="text-xs text-rose-nude-600">
+                        Use {"{time}"} para inserir o horário automaticamente
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-rose-nude-700">Mensagem de Cancelamento</Label>
+                      <Textarea
+                        value={settings.cancellationMessage}
+                        onChange={(e) => setSettings(prev => ({ ...prev, cancellationMessage: e.target.value }))}
+                        className="border-rose-nude-200"
+                        rows={3}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="border-rose-nude-200 mt-6">
+                <CardHeader>
+                  <CardTitle className="text-rose-nude-800">Integração de Pagamento (Futuro)</CardTitle>
+                  <CardDescription>
+                    Configurações para integração automática de confirmação de pagamento
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-rose-nude-50 p-4 rounded-lg border border-rose-nude-200">
+                    <h4 className="font-medium text-rose-nude-800 mb-2">Recursos Planejados:</h4>
+                    <ul className="text-sm text-rose-nude-600 space-y-1">
+                      <li>• Integração com API de pagamento para confirmação automática</li>
+                      <li>• Notificações em tempo real de pagamentos recebidos</li>
+                      <li>• Geração automática de recibos</li>
+                      <li>• Controle de inadimplência</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-rose-nude-700">API de Pagamento</Label>
+                    <Select disabled>
+                      <SelectTrigger className="border-rose-nude-200">
+                        <SelectValue placeholder="Em desenvolvimento..." />
+                      </SelectTrigger>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-rose-nude-700">Token de Integração</Label>
+                    <Input
+                      placeholder="Token será configurado futuramente"
+                      disabled
+                      className="border-rose-nude-200"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-center mt-6">
+                <Button 
+                  onClick={() => toast.success("Configurações de pagamento salvas!")}
+                  className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white px-8"
+                >
+                  Salvar Configurações de Pagamento
                 </Button>
               </div>
             </TabsContent>

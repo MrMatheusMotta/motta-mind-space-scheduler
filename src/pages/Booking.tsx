@@ -1,109 +1,97 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import Header from "@/components/Header";
-import { CalendarIcon, Clock, MapPin, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CalendarIcon, Clock, MapPin, Video, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import Header from "@/components/Header";
+import { supabase } from "@/integrations/supabase/client";
 
 const Booking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  
-  const [selectedService, setSelectedService] = useState("");
-  const [selectedType, setSelectedType] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [showPayment, setShowPayment] = useState(false);
+  const [selectedService, setSelectedService] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
 
   const services = [
-    {
-      id: "anamnese",
-      name: "Anamnese",
-      price: 160,
-      description: "Primeira consulta detalhada"
-    },
-    {
-      id: "quinzenal",
-      name: "Acompanhamento Quinzenal",
-      priceOnline: 280,
-      pricePresencial: 300,
-      description: "Sessões a cada 15 dias"
-    },
-    {
-      id: "mensal",
-      name: "Acompanhamento Mensal",
-      priceOnline: 380,
-      pricePresencial: 400,
-      description: "Sessões mensais"
-    },
-    {
-      id: "isolado",
-      name: "Atendimento Isolado",
-      priceOnline: 120,
-      pricePresencial: 150,
-      description: "Consulta pontual"
-    }
+    { id: "anamnese", name: "Anamnese", price: 160, description: "Primeira consulta - avaliação inicial" },
+    { id: "quinzenal", name: "Acompanhamento Quinzenal", priceOnline: 280, pricePresencial: 300, description: "Sessões a cada 15 dias" },
+    { id: "mensal", name: "Acompanhamento Mensal", priceOnline: 380, pricePresencial: 400, description: "Sessões mensais" },
+    { id: "isolado", name: "Atendimento Isolado", priceOnline: 120, pricePresencial: 150, description: "Sessão avulsa" }
   ];
 
   const timeSlots = [
     "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
   ];
 
-  const getServicePrice = () => {
+  const getCurrentPrice = () => {
     const service = services.find(s => s.id === selectedService);
     if (!service) return 0;
     
     if (service.id === "anamnese") return service.price;
     
-    return selectedType === "online" 
-      ? service.priceOnline || 0
-      : service.pricePresencial || 0;
+    return selectedType === "online" ? 
+      (service as any).priceOnline : 
+      (service as any).pricePresencial;
   };
 
-  const getDepositAmount = () => {
-    return getServicePrice() * 0.5;
-  };
-
-  const handleBooking = () => {
-    if (!selectedService || !selectedDate || !selectedTime) {
-      toast.error("Por favor, preencha todos os campos");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedDate || !selectedTime || !selectedService || !selectedType) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
 
-    if (selectedService !== "anamnese" && !selectedType) {
-      toast.error("Por favor, selecione o tipo de atendimento");
-      return;
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          user_id: user?.id,
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          time: selectedTime,
+          service: services.find(s => s.id === selectedService)?.name,
+          type: selectedType,
+          notes: notes || null,
+          status: 'agendado'
+        });
+
+      if (error) throw error;
+
+      toast.success("Agendamento realizado com sucesso!");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error('Erro ao criar agendamento:', error);
+      toast.error("Erro ao realizar agendamento. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setShowPayment(true);
   };
 
-  const handlePayment = () => {
-    // Simulate payment processing
-    toast.success("Agendamento confirmado! Você receberá um email com os detalhes.");
-    navigate("/profile");
-  };
-
-  const isWeekday = (date: Date) => {
-    const day = date.getDay();
-    return day !== 0 && day !== 6; // Not Sunday (0) or Saturday (6)
-  };
-
-  const selectedServiceData = services.find(s => s.id === selectedService);
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
@@ -114,267 +102,236 @@ const Booking = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold gradient-text mb-4">Agendar Consulta</h1>
             <p className="text-lg text-rose-nude-600">
-              Escolha o serviço e horário que melhor se adequa às suas necessidades
+              Bem-vindo(a), {user.full_name?.split(' ')[0] || 'Usuário'}! Escolha o melhor horário para sua consulta.
             </p>
           </div>
 
-          {!showPayment ? (
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Booking Form */}
-              <Card className="border-rose-nude-200">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Formulário de Agendamento */}
+            <div className="lg:col-span-2">
+              <Card className="border-rose-nude-200 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-rose-nude-800">Detalhes do Agendamento</CardTitle>
                   <CardDescription className="text-rose-nude-600">
-                    Preencha as informações para agendar sua consulta
+                    Preencha as informações abaixo para agendar sua consulta
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Service Selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-rose-nude-700">
-                      Serviço *
-                    </label>
-                    <Select value={selectedService} onValueChange={setSelectedService}>
-                      <SelectTrigger className="border-rose-nude-200">
-                        <SelectValue placeholder="Selecione um serviço" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map(service => (
-                          <SelectItem key={service.id} value={service.id}>
-                            <div className="flex justify-between items-center w-full">
-                              <span>{service.name}</span>
-                              <span className="text-rose-nude-600 ml-4">
-                                {service.price ? 
-                                  `R$ ${service.price}` : 
-                                  `R$ ${service.priceOnline} - R$ ${service.pricePresencial}`
-                                }
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Type Selection (only if not anamnese) */}
-                  {selectedService && selectedService !== "anamnese" && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-rose-nude-700">
-                        Tipo de Atendimento *
-                      </label>
-                      <Select value={selectedType} onValueChange={setSelectedType}>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Seleção de Serviço */}
+                    <div className="space-y-3">
+                      <Label className="text-rose-nude-700 font-medium">Tipo de Serviço *</Label>
+                      <Select value={selectedService} onValueChange={setSelectedService}>
                         <SelectTrigger className="border-rose-nude-200">
-                          <SelectValue placeholder="Selecione o tipo" />
+                          <SelectValue placeholder="Selecione o tipo de consulta" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="online">
-                            Online - R$ {selectedServiceData?.priceOnline}
-                          </SelectItem>
-                          <SelectItem value="presencial">
-                            Presencial - R$ {selectedServiceData?.pricePresencial}
-                          </SelectItem>
+                          {services.map((service) => (
+                            <SelectItem key={service.id} value={service.id}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{service.name}</span>
+                                <span className="text-sm text-rose-nude-600">{service.description}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
 
-                  {/* Date Selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-rose-nude-700">
-                      Data *
-                    </label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal border-rose-nude-200",
-                            !selectedDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {selectedDate ? (
-                            format(selectedDate, "PPP", { locale: ptBR })
-                          ) : (
-                            <span>Selecione uma data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          disabled={(date) => 
-                            date < new Date() || !isWeekday(date)
-                          }
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <p className="text-xs text-rose-nude-600">
-                      Disponível apenas em dias úteis após às 18h
-                    </p>
-                  </div>
+                    {/* Modalidade (Online/Presencial) */}
+                    {selectedService && selectedService !== "anamnese" && (
+                      <div className="space-y-3">
+                        <Label className="text-rose-nude-700 font-medium">Modalidade *</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <Card 
+                            className={cn(
+                              "cursor-pointer transition-all border-2",
+                              selectedType === "online" 
+                                ? "border-rose-nude-500 bg-rose-nude-50" 
+                                : "border-rose-nude-200 hover:border-rose-nude-300"
+                            )}
+                            onClick={() => setSelectedType("online")}
+                          >
+                            <CardContent className="p-4 text-center">
+                              <Video className="w-8 h-8 mx-auto mb-2 text-rose-nude-600" />
+                              <h3 className="font-medium text-rose-nude-800">Online</h3>
+                              <p className="text-sm text-rose-nude-600">Via videoconferência</p>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card 
+                            className={cn(
+                              "cursor-pointer transition-all border-2",
+                              selectedType === "presencial" 
+                                ? "border-rose-nude-500 bg-rose-nude-50" 
+                                : "border-rose-nude-200 hover:border-rose-nude-300"
+                            )}
+                            onClick={() => setSelectedType("presencial")}
+                          >
+                            <CardContent className="p-4 text-center">
+                              <MapPin className="w-8 h-8 mx-auto mb-2 text-rose-nude-600" />
+                              <h3 className="font-medium text-rose-nude-800">Presencial</h3>
+                              <p className="text-sm text-rose-nude-600">No consultório</p>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Time Selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-rose-nude-700">
-                      Horário *
-                    </label>
-                    <Select value={selectedTime} onValueChange={setSelectedTime}>
-                      <SelectTrigger className="border-rose-nude-200">
-                        <SelectValue placeholder="Selecione um horário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeSlots.map(time => (
-                          <SelectItem key={time} value={time}>
-                            <div className="flex items-center">
-                              <Clock className="w-4 h-4 mr-2" />
-                              {time}
-                            </div>
-                          </SelectItem>
+                    {/* Seleção de Data */}
+                    <div className="space-y-3">
+                      <Label className="text-rose-nude-700 font-medium">Data da Consulta *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal border-rose-nude-200",
+                              !selectedDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? format(selectedDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
+                            initialFocus
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Seleção de Horário */}
+                    <div className="space-y-3">
+                      <Label className="text-rose-nude-700 font-medium">Horário *</Label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {timeSlots.map((time) => (
+                          <Button
+                            key={time}
+                            type="button"
+                            variant={selectedTime === time ? "default" : "outline"}
+                            className={cn(
+                              "border-rose-nude-200",
+                              selectedTime === time && "bg-rose-nude-500 hover:bg-rose-nude-600"
+                            )}
+                            onClick={() => setSelectedTime(time)}
+                          >
+                            <Clock className="w-4 h-4 mr-2" />
+                            {time}
+                          </Button>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <Button 
-                    onClick={handleBooking}
-                    className="w-full bg-rose-nude-500 hover:bg-rose-nude-600 text-white"
-                    disabled={!selectedService || !selectedDate || !selectedTime}
-                  >
-                    Continuar para Pagamento
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Summary */}
-              <Card className="border-rose-nude-200">
-                <CardHeader>
-                  <CardTitle className="text-rose-nude-800">Resumo do Agendamento</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-rose-nude-600">Paciente</p>
-                    <p className="font-medium text-rose-nude-800">{user.name}</p>
-                  </div>
-
-                  {selectedService && (
-                    <div className="space-y-2">
-                      <p className="text-sm text-rose-nude-600">Serviço</p>
-                      <p className="font-medium text-rose-nude-800">
-                        {selectedServiceData?.name}
-                      </p>
-                      <p className="text-sm text-rose-nude-600">
-                        {selectedServiceData?.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedType && (
-                    <div className="space-y-2">
-                      <p className="text-sm text-rose-nude-600">Tipo</p>
-                      <p className="font-medium text-rose-nude-800 capitalize">
-                        {selectedType}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedDate && (
-                    <div className="space-y-2">
-                      <p className="text-sm text-rose-nude-600">Data</p>
-                      <p className="font-medium text-rose-nude-800">
-                        {format(selectedDate, "PPP", { locale: ptBR })}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedTime && (
-                    <div className="space-y-2">
-                      <p className="text-sm text-rose-nude-600">Horário</p>
-                      <p className="font-medium text-rose-nude-800">{selectedTime}</p>
-                    </div>
-                  )}
-
-                  {selectedService && (
-                    <div className="pt-4 border-t border-rose-nude-200 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-rose-nude-600">Valor total:</span>
-                        <span className="font-medium text-rose-nude-800">
-                          R$ {getServicePrice().toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-rose-nude-600">Pagamento antecipado (50%):</span>
-                        <span className="font-bold text-rose-nude-800">
-                          R$ {getDepositAmount().toFixed(2)}
-                        </span>
                       </div>
                     </div>
-                  )}
+
+                    {/* Observações */}
+                    <div className="space-y-3">
+                      <Label htmlFor="notes" className="text-rose-nude-700 font-medium">
+                        Observações (Opcional)
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        placeholder="Compartilhe informações adicionais que possam ser úteis para a consulta..."
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        className="border-rose-nude-200 focus:border-rose-nude-400"
+                        rows={3}
+                      />
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-rose-nude-500 hover:bg-rose-nude-600 text-white py-3"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Agendando..." : "Confirmar Agendamento"}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </div>
-          ) : (
-            /* Payment Section */
-            <Card className="max-w-md mx-auto border-rose-nude-200">
-              <CardHeader className="text-center">
-                <CardTitle className="text-rose-nude-800 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  Pagamento via PIX
-                </CardTitle>
-                <CardDescription className="text-rose-nude-600">
-                  Pague 50% do valor agora para confirmar seu agendamento
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-center">
-                  <div className="w-48 h-48 bg-rose-nude-100 border-2 border-dashed border-rose-nude-300 rounded-lg mx-auto flex items-center justify-center mb-4">
-                    <div className="text-center">
-                      <div className="w-24 h-24 bg-rose-nude-200 rounded-lg mx-auto mb-2"></div>
-                      <p className="text-sm text-rose-nude-600">QR Code PIX</p>
+
+            {/* Resumo do Agendamento */}
+            <div>
+              <Card className="border-rose-nude-200 shadow-lg sticky top-8">
+                <CardHeader>
+                  <CardTitle className="text-rose-nude-800">Resumo</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedService && (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-sm text-rose-nude-600">Serviço:</span>
+                        <span className="text-sm font-medium text-right">
+                          {services.find(s => s.id === selectedService)?.name}
+                        </span>
+                      </div>
+                      
+                      {selectedType && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-rose-nude-600">Modalidade:</span>
+                          <span className="text-sm font-medium capitalize">{selectedType}</span>
+                        </div>
+                      )}
+                      
+                      {selectedDate && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-rose-nude-600">Data:</span>
+                          <span className="text-sm font-medium">
+                            {format(selectedDate, "PPP", { locale: ptBR })}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {selectedTime && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-rose-nude-600">Horário:</span>
+                          <span className="text-sm font-medium">{selectedTime}</span>
+                        </div>
+                      )}
+                      
+                      <div className="border-t pt-3 mt-4">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-rose-nude-800">Total:</span>
+                          <span className="text-lg font-bold text-rose-nude-800">
+                            R$ {getCurrentPrice().toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
-                  <div className="space-y-2">
-                    <p className="font-bold text-2xl text-rose-nude-800">
-                      R$ {getDepositAmount().toFixed(2)}
+                  {!selectedService && (
+                    <p className="text-sm text-rose-nude-600 text-center py-8">
+                      Selecione um serviço para ver o resumo
                     </p>
-                    <p className="text-sm text-rose-nude-600">
-                      Chave PIX: <strong>contato@daianemotta.com</strong>
-                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Informações do Consultório */}
+              <Card className="border-rose-nude-200 shadow-lg mt-6">
+                <CardHeader>
+                  <CardTitle className="text-rose-nude-800 flex items-center">
+                    <MapPin className="w-5 h-5 mr-2" />
+                    Localização
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm text-rose-nude-600">
+                    <p className="font-medium">Av Cardoso Moreira, 193, Centro</p>
+                    <p>Itaperuna - RJ, CEP 28300-000</p>
+                    <p>Edifício Rotary, 2º andar, sala 208</p>
                   </div>
-                </div>
-
-                <div className="bg-rose-nude-50 p-4 rounded-lg border border-rose-nude-200">
-                  <h4 className="font-medium text-rose-nude-800 mb-2">Instruções:</h4>
-                  <ul className="text-sm text-rose-nude-600 space-y-1">
-                    <li>• Escaneie o QR Code ou use a chave PIX</li>
-                    <li>• Confirme o valor de R$ {getDepositAmount().toFixed(2)}</li>
-                    <li>• Após o pagamento, clique em "Confirmar Pagamento"</li>
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <Button 
-                    onClick={handlePayment}
-                    className="w-full bg-rose-nude-500 hover:bg-rose-nude-600 text-white"
-                  >
-                    Confirmar Pagamento
-                  </Button>
-                  <Button 
-                    onClick={() => setShowPayment(false)}
-                    variant="outline"
-                    className="w-full border-rose-nude-300 text-rose-nude-700"
-                  >
-                    Voltar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

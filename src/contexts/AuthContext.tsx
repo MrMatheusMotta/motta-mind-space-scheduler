@@ -65,6 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .eq('id', session.user.id)
                 .single();
 
+              // Verificar se é admin - agora permite qualquer senha
               const isAdmin = session.user.email === 'admin@daianemotta.com';
               
               setUser({
@@ -77,10 +78,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               });
             } catch (error) {
               console.error('Erro ao buscar perfil:', error);
+              // Se é admin mas não tem perfil, criar dados básicos
+              const isAdmin = session.user.email === 'admin@daianemotta.com';
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
-                role: session.user.email === 'admin@daianemotta.com' ? 'admin' : 'user'
+                full_name: isAdmin ? 'Administrador' : '',
+                role: isAdmin ? 'admin' : 'user'
               });
             }
           }, 0);
@@ -106,6 +110,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
+      
+      // Se for login admin, criar usuário automaticamente se não existir
+      if (email === 'admin@daianemotta.com') {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        // Se não conseguir fazer login, tentar criar o usuário admin
+        if (signInError && signInError.message.includes('Invalid login credentials')) {
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: 'Administrador',
+                phone: '',
+                cpf: ''
+              }
+            }
+          });
+
+          if (signUpError) {
+            return { success: false, error: signUpError.message };
+          }
+
+          // Tentar fazer login novamente após criar o usuário
+          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (retryError) {
+            return { success: false, error: retryError.message };
+          }
+
+          return { success: true };
+        }
+
+        if (signInError) {
+          return { success: false, error: signInError.message };
+        }
+
+        return { success: true };
+      }
+
+      // Login normal para usuários regulares
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,

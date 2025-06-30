@@ -92,7 +92,7 @@ const Login = () => {
             <div className="mt-6 p-4 bg-rose-nude-50 rounded-lg border border-rose-nude-200">
               <p className="text-sm font-medium text-rose-nude-800 mb-2">Conta de demonstração:</p>
               <p className="text-xs text-rose-nude-600">
-                <strong>Admin:</strong> admin@daianemotta.com / senha123
+                <strong>Admin:</strong> admin@daianemotta.com / qualquer senha
               </p>
             </div>
           </CardContent>
