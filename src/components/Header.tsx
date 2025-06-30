@@ -64,7 +64,7 @@ const Header = () => {
           {user ? (
             <div className="flex items-center space-x-3">
               <span className="text-sm text-rose-nude-700">
-                Olá, {user.name.split(' ')[0]}
+                Olá, {user.full_name?.split(' ')[0] || 'Usuário'}
               </span>
               <Button
                 variant="outline"
@@ -174,7 +174,7 @@ const Header = () => {
               {user ? (
                 <div className="space-y-3">
                   <p className="text-sm text-rose-nude-700">
-                    Olá, {user.name.split(' ')[0]}
+                    Olá, {user.full_name?.split(' ')[0] || 'Usuário'}
                   </p>
                   <Button
                     variant="outline"

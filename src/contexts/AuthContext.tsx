@@ -145,6 +145,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, error: error.message };
       }
 
+      // Se o usuário foi criado com sucesso, consideramos sucesso
+      if (data.user) {
+        return { success: true };
+      }
+
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Erro inesperado durante o cadastro' };

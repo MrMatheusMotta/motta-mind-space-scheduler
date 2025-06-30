@@ -73,7 +73,8 @@ const Register = () => {
     });
     
     if (result.success) {
-      toast.success("Conta criada com sucesso! Verifique seu email para confirmar a conta.");
+      toast.success("Conta criada com sucesso! Faça login para continuar.");
+      // Redirecionamento direto para login
       navigate("/login");
     } else {
       toast.error(result.error || "Erro ao criar conta. Tente novamente.");
