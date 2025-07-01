@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -129,7 +130,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('Tentando fazer login com:', { email });
       
-      // Login direto sem tentar criar usuário
+      // Primeiro, vamos tentar fazer logout de qualquer sessão existente
+      await supabase.auth.signOut();
+      
+      // Aguardar um pouco para garantir que o logout foi processado
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Agora fazer o login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -137,6 +144,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) {
         console.log('Erro no login:', error);
+        
+        // Se for o admin e der erro de credenciais inválidas, vamos tentar criar
+        if (email === 'admin@daianemotta.com' && error.message === 'Invalid login credentials') {
+          console.log('Tentando criar usuário admin...');
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/`,
+              data: {
+                full_name: 'Administrador',
+              }
+            }
+          });
+
+          if (signUpError) {
+            console.log('Erro ao criar admin:', signUpError);
+            return { success: false, error: translateError(signUpError.message) };
+          }
+
+          console.log('Admin criado, tentando login novamente...');
+          // Aguardar um momento
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Tentar login novamente
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (loginError) {
+            console.log('Erro no segundo login:', loginError);
+            return { success: false, error: translateError(loginError.message) };
+          }
+
+          console.log('Login admin realizado com sucesso');
+          return { success: true };
+        }
+        
         return { success: false, error: translateError(error.message) };
       }
 

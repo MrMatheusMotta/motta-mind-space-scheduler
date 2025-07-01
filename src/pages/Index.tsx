@@ -46,15 +46,15 @@ const Index = () => {
       image: "/placeholder.svg"
     },
     {
-      name: "João Silva",
+      name: "Ana Silva",
       rating: 5,
-      comment: "Profissional excepcional! Seu conhecimento em TCC é impressionante e sempre me sinto acolhido nas sessões.",
+      comment: "Profissional excepcional! Seu conhecimento em TCC é impressionante e sempre me sinto acolhida nas sessões.",
       image: "/placeholder.svg"
     },
     {
-      name: "Ana Costa",
+      name: "Carla Costa",
       rating: 5,
-      comment: "Recomendo a todos! Daiane tem uma abordagem muito humana e eficaz. Meu filho autista teve grandes progressos.",
+      comment: "Recomendo a todas! Daiane tem uma abordagem muito humana e eficaz. Minha filha autista teve grandes progressos.",
       image: "/placeholder.svg"
     }
   ];
@@ -68,7 +68,7 @@ const Index = () => {
     {
       icon: Users,
       title: "Atendimento Especializado",
-      description: "Foco em crianças neuroatípicas e famílias"
+      description: "Exclusivo para mulheres e crianças neuroatípicas"
     },
     {
       icon: Heart,
@@ -96,8 +96,13 @@ const Index = () => {
                   Transforme sua vida com a Terapia Cognitiva Comportamental
                 </h1>
                 <p className="text-lg md:text-xl text-rose-nude-600 leading-relaxed">
-                  Sou Daiane Motta, Terapeuta Cognitiva Comportamental especializada em ajudar você a superar desafios emocionais e conquistar uma vida mais equilibrada.
+                  Sou Daiane Motta, Terapeuta Cognitiva Comportamental especializada em ajudar mulheres e crianças a superar desafios emocionais e conquistar uma vida mais equilibrada.
                 </p>
+                <div className="p-4 bg-rose-nude-100 rounded-lg border border-rose-nude-200 mb-6">
+                  <p className="text-rose-nude-800 font-semibold text-center">
+                    🌸 Atendimento exclusivo para mulheres e crianças 🌸
+                  </p>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white">
                     <Link to="/booking">
@@ -196,6 +201,7 @@ const Index = () => {
                     <li>• Pagamento de 50% via PIX no ato do agendamento</li>
                     <li>• Remarcações com 48h de antecedência</li>
                     <li>• Faltas injustificáveis não têm reembolso</li>
+                    <li>• <strong>Atendimento exclusivo para mulheres e crianças</strong></li>
                   </ul>
                 </div>
               </div>
@@ -210,7 +216,7 @@ const Index = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">Depoimentos</h2>
-              <p className="text-lg text-rose-nude-600">O que meus pacientes dizem</p>
+              <p className="text-lg text-rose-nude-600">O que minhas pacientes dizem</p>
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">
@@ -247,7 +253,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">Informações de Contato</h2>
-              <p className="text-lg text-rose-nude-600">Estou aqui para ajudá-la(o)</p>
+              <p className="text-lg text-rose-nude-600">Estou aqui para ajudá-la</p>
             </div>
             
             <div className="grid md:grid-cols-2 gap-8">
@@ -294,10 +300,13 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Pronto para começar sua transformação?
+              Pronta para começar sua transformação?
             </h2>
-            <p className="text-lg md:text-xl text-rose-nude-100 mb-8">
+            <p className="text-lg md:text-xl text-rose-nude-100 mb-4">
               Agende sua consulta hoje e dê o primeiro passo rumo ao seu bem-estar
+            </p>
+            <p className="text-md text-rose-nude-100 mb-8">
+              <strong>Atendimento exclusivo para mulheres e crianças</strong>
             </p>
             <Button asChild size="lg" className="bg-white text-rose-nude-600 hover:bg-rose-nude-50">
               <Link to="/register">Começar Agora</Link>
