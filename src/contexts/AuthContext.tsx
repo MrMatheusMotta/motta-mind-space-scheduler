@@ -44,6 +44,25 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Função para traduzir mensagens de erro do Supabase
+const translateError = (error: string): string => {
+  const translations: { [key: string]: string } = {
+    'Invalid login credentials': 'Email ou senha incorretos',
+    'User already registered': 'Usuário já cadastrado',
+    'Email not confirmed': 'Email não confirmado',
+    'Password should be at least 6 characters': 'A senha deve ter pelo menos 6 caracteres',
+    'Unable to validate email address: invalid format': 'Formato de email inválido',
+    'Password is too weak': 'Senha muito fraca',
+    'User not found': 'Usuário não encontrado',
+    'Email already exists': 'Email já existe',
+    'Invalid email': 'Email inválido',
+    'Signup is disabled': 'Cadastro desabilitado',
+    'Too many requests': 'Muitas tentativas, tente novamente mais tarde'
+  };
+
+  return translations[error] || error;
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -107,64 +126,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Validação específica para admin
-      if (email === 'admin@daianemotta.com' && password !== 'daianemotta1234') {
-        return { success: false, error: 'Senha incorreta para administrador' };
-      }
-      
-      if (email === 'admin@daianemotta.com') {
-        // Tentar fazer login primeiro
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        // Se não conseguir fazer login, criar o usuário admin
-        if (signInError && signInError.message.includes('Invalid login credentials')) {
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                full_name: 'Administrador',
-                phone: '',
-                cpf: ''
-              }
-            }
-          });
-
-          if (signUpError) {
-            return { success: false, error: signUpError.message };
-          }
-
-          // Tentar fazer login novamente após criar o usuário
-          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (retryError) {
-            return { success: false, error: retryError.message };
-          }
-
-          return { success: true };
-        }
-
-        if (signInError) {
-          return { success: false, error: signInError.message };
-        }
-
-        return { success: true };
-      }
-
-      // Login normal para usuários regulares
+      // Para o admin, apenas tenta fazer login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: translateError(error.message) };
       }
 
       return { success: true };
@@ -194,7 +163,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: translateError(error.message) };
       }
 
       if (data.user) {
@@ -216,7 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: translateError(error.message) };
       }
 
       return { success: true };
