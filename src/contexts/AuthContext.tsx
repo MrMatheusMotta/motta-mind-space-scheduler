@@ -19,6 +19,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
 }
 
@@ -57,7 +58,8 @@ const translateError = (error: string): string => {
     'Email already exists': 'Email já existe',
     'Invalid email': 'Email inválido',
     'Signup is disabled': 'Cadastro desabilitado',
-    'Too many requests': 'Muitas tentativas, tente novamente mais tarde'
+    'Too many requests': 'Muitas tentativas, tente novamente mais tarde',
+    'Email rate limit exceeded': 'Limite de emails excedido, tente novamente mais tarde'
   };
 
   return translations[error] || error;
@@ -126,7 +128,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Para o admin, apenas tenta fazer login
+      // Verificação especial para o admin
+      if (email === 'admin@daianemotta.com' && password === 'daianemotta1234') {
+        // Tenta fazer login direto com o Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          console.log('Erro no login admin:', error);
+          // Se der erro, pode ser que o usuário não existe ainda
+          // Vamos tentar criar o usuário admin automaticamente
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: 'Administrador',
+              }
+            }
+          });
+
+          if (signUpError) {
+            console.log('Erro no signup admin:', signUpError);
+            return { success: false, error: translateError(signUpError.message) };
+          }
+
+          // Tenta fazer login novamente
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (loginError) {
+            return { success: false, error: translateError(loginError.message) };
+          }
+        }
+
+        return { success: true };
+      }
+
+      // Para outros usuários, login normal
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -194,6 +237,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl
+      });
+
+      if (error) {
+        return { success: false, error: translateError(error.message) };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Erro ao enviar email de recuperação' };
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -211,6 +272,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updatePassword,
+    resetPassword,
     isLoading
   };
 

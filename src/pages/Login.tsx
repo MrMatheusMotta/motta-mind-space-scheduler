@@ -14,7 +14,9 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const { login, resetPassword, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,15 +27,87 @@ const Login = () => {
       return;
     }
 
+    console.log('Tentando fazer login com:', { email, password });
     const result = await login(email, password);
     
     if (result.success) {
       toast.success("Login realizado com sucesso!");
       navigate("/");
     } else {
+      console.log('Erro no login:', result.error);
       toast.error(result.error || "Email ou senha incorretos");
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!resetEmail) {
+      toast.error("Por favor, digite seu email");
+      return;
+    }
+
+    const result = await resetPassword(resetEmail);
+    
+    if (result.success) {
+      toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } else {
+      toast.error(result.error || "Erro ao enviar email de recuperação");
+    }
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
+        <Header />
+        
+        <div className="container mx-auto px-4 py-16 flex items-center justify-center">
+          <Card className="w-full max-w-md border-rose-nude-200 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl gradient-text">Recuperar Senha</CardTitle>
+              <CardDescription className="text-rose-nude-600">
+                Digite seu email para receber instruções de recuperação
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="resetEmail" className="text-rose-nude-700">Email</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="border-rose-nude-200 focus:border-rose-nude-400"
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full bg-rose-nude-500 hover:bg-rose-nude-600 text-white"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Enviando..." : "Enviar Email de Recuperação"}
+                </Button>
+              </form>
+              
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => setShowForgotPassword(false)}
+                  className="text-sm text-rose-nude-700 hover:text-rose-nude-900 font-medium"
+                >
+                  Voltar para o login
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
@@ -90,6 +164,15 @@ const Login = () => {
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
+            
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-rose-nude-600 hover:text-rose-nude-800 font-medium"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
             
             <div className="mt-6 text-center">
               <p className="text-sm text-rose-nude-600">
