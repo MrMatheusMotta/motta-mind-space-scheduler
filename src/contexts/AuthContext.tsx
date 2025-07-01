@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
 }
 
@@ -49,14 +50,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Configurar listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session);
         setSession(session);
         
         if (session?.user) {
-          // Buscar dados do perfil do usuário
           setTimeout(async () => {
             try {
               const { data: profile } = await supabase
@@ -65,20 +64,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .eq('id', session.user.id)
                 .single();
 
-              // Verificar se é admin - agora permite qualquer senha
               const isAdmin = session.user.email === 'admin@daianemotta.com';
               
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
-                full_name: profile?.full_name || '',
+                full_name: profile?.full_name || (isAdmin ? 'Administrador' : ''),
                 phone: profile?.phone || '',
                 cpf: profile?.cpf || '',
                 role: isAdmin ? 'admin' : 'user'
               });
             } catch (error) {
               console.error('Erro ao buscar perfil:', error);
-              // Se é admin mas não tem perfil, criar dados básicos
               const isAdmin = session.user.email === 'admin@daianemotta.com';
               setUser({
                 id: session.user.id,
@@ -96,7 +93,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
-    // Verificar sessão existente
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (!session) {
@@ -111,14 +107,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Se for login admin, criar usuário automaticamente se não existir
+      // Validação específica para admin
+      if (email === 'admin@daianemotta.com' && password !== 'daianemotta1234') {
+        return { success: false, error: 'Senha incorreta para administrador' };
+      }
+      
       if (email === 'admin@daianemotta.com') {
+        // Tentar fazer login primeiro
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        // Se não conseguir fazer login, tentar criar o usuário admin
+        // Se não conseguir fazer login, criar o usuário admin
         if (signInError && signInError.message.includes('Invalid login credentials')) {
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email,
@@ -196,7 +197,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, error: error.message };
       }
 
-      // Se o usuário foi criado com sucesso, consideramos sucesso
       if (data.user) {
         return { success: true };
       }
@@ -206,6 +206,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: false, error: 'Erro inesperado durante o cadastro' };
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const updatePassword = async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Erro ao atualizar senha' };
     }
   };
 
@@ -225,6 +241,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    updatePassword,
     isLoading
   };
 
