@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -128,59 +127,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Verificação especial para o admin
-      if (email === 'admin@daianemotta.com' && password === 'daianemotta1234') {
-        // Tenta fazer login direto com o Supabase
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          console.log('Erro no login admin:', error);
-          // Se der erro, pode ser que o usuário não existe ainda
-          // Vamos tentar criar o usuário admin automaticamente
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                full_name: 'Administrador',
-              }
-            }
-          });
-
-          if (signUpError) {
-            console.log('Erro no signup admin:', signUpError);
-            return { success: false, error: translateError(signUpError.message) };
-          }
-
-          // Tenta fazer login novamente
-          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (loginError) {
-            return { success: false, error: translateError(loginError.message) };
-          }
-        }
-
-        return { success: true };
-      }
-
-      // Para outros usuários, login normal
+      console.log('Tentando fazer login com:', { email });
+      
+      // Login direto sem tentar criar usuário
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.log('Erro no login:', error);
         return { success: false, error: translateError(error.message) };
       }
 
+      console.log('Login realizado com sucesso:', data);
       return { success: true };
     } catch (error) {
+      console.error('Erro inesperado durante o login:', error);
       return { success: false, error: 'Erro inesperado durante o login' };
     } finally {
       setIsLoading(false);
@@ -191,6 +154,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       const redirectUrl = `${window.location.origin}/`;
+      
+      console.log('Tentando cadastrar usuário:', { email: userData.email });
       
       const { data, error } = await supabase.auth.signUp({
         email: userData.email,
@@ -206,15 +171,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
+        console.log('Erro no cadastro:', error);
         return { success: false, error: translateError(error.message) };
       }
 
-      if (data.user) {
-        return { success: true };
-      }
-
+      console.log('Cadastro realizado com sucesso:', data);
       return { success: true };
     } catch (error) {
+      console.error('Erro inesperado durante o cadastro:', error);
       return { success: false, error: 'Erro inesperado durante o cadastro' };
     } finally {
       setIsLoading(false);
