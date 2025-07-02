@@ -7,19 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useAdminSettings } from "@/hooks/useAdminSettings";
-
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  duration: number;
-  price: number;
-  priceOnline?: number;
-}
+import { useServicesSettings, type Service } from "@/hooks/useServicesSettings";
 
 const ServicesManager = () => {
-  const { settings, updateServices } = useAdminSettings();
+  const { services, updateServices } = useServicesSettings();
   const [isEditing, setIsEditing] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [formData, setFormData] = useState({
@@ -34,7 +25,7 @@ const ServicesManager = () => {
     e.preventDefault();
     
     if (editingService) {
-      const updatedServices = settings.services.map(service => 
+      const updatedServices = services.map(service => 
         service.id === editingService.id 
           ? { ...editingService, ...formData, priceOnline: formData.priceOnline || undefined }
           : service
@@ -47,7 +38,7 @@ const ServicesManager = () => {
         ...formData,
         priceOnline: formData.priceOnline || undefined
       };
-      updateServices([...settings.services, newService]);
+      updateServices([...services, newService]);
       toast.success("Serviço criado com sucesso!");
     }
 
@@ -73,7 +64,7 @@ const ServicesManager = () => {
   };
 
   const handleDelete = (id: string) => {
-    const updatedServices = settings.services.filter(service => service.id !== id);
+    const updatedServices = services.filter(service => service.id !== id);
     updateServices(updatedServices);
     toast.success("Serviço removido com sucesso!");
   };
@@ -170,7 +161,7 @@ const ServicesManager = () => {
 
       <div className="grid gap-4">
         <h3 className="text-lg font-medium text-rose-nude-800">Serviços Disponíveis</h3>
-        {settings.services.map((service) => (
+        {services.map((service) => (
           <Card key={service.id} className="border-rose-nude-200">
             <CardContent className="pt-6">
               <div className="flex justify-between items-start">

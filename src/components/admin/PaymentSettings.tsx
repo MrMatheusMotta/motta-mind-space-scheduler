@@ -4,229 +4,168 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { CreditCard, Percent, DollarSign, QrCode, Upload, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CreditCard, Upload, X } from "lucide-react";
 import { toast } from "sonner";
-import { useAdminSettings } from "@/hooks/useAdminSettings";
+import { usePaymentSettings } from "@/hooks/usePaymentSettings";
 
 const PaymentSettings = () => {
-  const { settings, updatePayment } = useAdminSettings();
-  const [paymentData, setPaymentData] = useState(settings.payment);
+  const { payment, updatePayment } = usePaymentSettings();
+  const [formData, setFormData] = useState(payment);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updatePayment(paymentData);
+    updatePayment(formData);
     toast.success("Configurações de pagamento atualizadas com sucesso!");
   };
 
-  const handleMethodToggle = (method: string, enabled: boolean) => {
-    const methods = enabled 
-      ? [...paymentData.paymentMethods, method]
-      : paymentData.paymentMethods.filter(m => m !== method);
-    
-    setPaymentData(prev => ({ ...prev, paymentMethods: methods }));
+  const handleMethodChange = (method: string, checked: boolean) => {
+    if (checked) {
+      setFormData({
+        ...formData,
+        paymentMethods: [...formData.paymentMethods, method]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        paymentMethods: formData.paymentMethods.filter(m => m !== method)
+      });
+    }
   };
 
-  const handleQrCodeUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setPaymentData(prev => ({ ...prev, qrCodeImage: result }));
+      reader.onload = (event) => {
+        const imageDataUrl = event.target?.result as string;
+        setFormData({ ...formData, qrCodeImage: imageDataUrl });
+        toast.success("Imagem do QR Code carregada com sucesso!");
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const removeQrCode = () => {
-    setPaymentData(prev => ({ ...prev, qrCodeImage: undefined }));
+  const removeQRImage = () => {
+    setFormData({ ...formData, qrCodeImage: undefined });
+    toast.success("Imagem do QR Code removida!");
   };
 
-  const availableMethods = ["PIX", "Cartão de Crédito", "Cartão de Débito", "Dinheiro", "Transferência Bancária"];
+  const paymentMethods = [
+    { id: "PIX", label: "PIX" },
+    { id: "Cartão de Crédito", label: "Cartão de Crédito" },
+    { id: "Cartão de Débito", label: "Cartão de Débito" },
+    { id: "Dinheiro", label: "Dinheiro" },
+    { id: "Transferência", label: "Transferência Bancária" }
+  ];
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-rose-nude-800">Configurações de Pagamento</h2>
-        <p className="text-rose-nude-600">Configure as formas de pagamento e valores de entrada.</p>
+        <p className="text-rose-nude-600">Configure as formas de pagamento e valores de adiantamento.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="border-rose-nude-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Percent className="h-5 w-5" />
-              Valor de Entrada
-            </CardTitle>
-            <CardDescription>
-              Defina o percentual de entrada para confirmação do agendamento
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <Card className="border-rose-nude-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Configurações de Pagamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="advance">Percentual de Entrada (%)</Label>
+              <Label htmlFor="advancePercentage">Porcentagem de Adiantamento (%)</Label>
               <Input
-                id="advance"
+                id="advancePercentage"
                 type="number"
                 min="0"
                 max="100"
-                value={paymentData.advancePercentage}
-                onChange={(e) => setPaymentData(prev => ({ 
-                  ...prev, 
-                  advancePercentage: Number(e.target.value) 
-                }))}
+                value={formData.advancePercentage}
+                onChange={(e) => setFormData({ ...formData, advancePercentage: Number(e.target.value) })}
+                required
               />
               <p className="text-sm text-rose-nude-600">
-                Valor atual: {paymentData.advancePercentage}% do valor da consulta
+                Valor que o cliente deve pagar antecipadamente para confirmar o agendamento
               </p>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border-rose-nude-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Chave PIX
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="pixKey">Chave PIX</Label>
               <Input
                 id="pixKey"
-                value={paymentData.pixKey}
-                onChange={(e) => setPaymentData(prev => ({ 
-                  ...prev, 
-                  pixKey: e.target.value 
-                }))}
+                value={formData.pixKey}
+                onChange={(e) => setFormData({ ...formData, pixKey: e.target.value })}
                 placeholder="Digite sua chave PIX"
               />
             </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border-rose-nude-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5" />
-              QR Code PIX
-            </CardTitle>
-            <CardDescription>
-              Faça upload de uma imagem do QR Code para facilitar o pagamento
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {paymentData.qrCodeImage ? (
-              <div className="space-y-4">
-                <div className="relative inline-block">
-                  <img 
-                    src={paymentData.qrCodeImage} 
-                    alt="QR Code PIX" 
-                    className="w-48 h-48 object-contain border border-rose-nude-200 rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute -top-2 -right-2"
-                    onClick={removeQrCode}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-sm text-rose-nude-600">
-                  QR Code carregado com sucesso. Clique no X para remover.
-                </p>
+            <div className="space-y-3">
+              <Label>QR Code PIX</Label>
+              <div className="space-y-3">
+                {formData.qrCodeImage ? (
+                  <div className="relative inline-block">
+                    <img 
+                      src={formData.qrCodeImage} 
+                      alt="QR Code PIX" 
+                      className="w-32 h-32 border border-rose-nude-200 rounded"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                      onClick={removeQRImage}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-rose-nude-200 rounded-lg p-6 text-center">
+                    <Upload className="mx-auto h-8 w-8 text-rose-nude-400 mb-2" />
+                    <p className="text-sm text-rose-nude-600 mb-2">
+                      Clique para fazer upload do QR Code PIX
+                    </p>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="qr-upload"
+                    />
+                    <Label htmlFor="qr-upload" className="cursor-pointer">
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <span>Selecionar Imagem</span>
+                      </Button>
+                    </Label>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-rose-nude-300 rounded-lg p-6 text-center">
-                  <QrCode className="w-12 h-12 text-rose-nude-400 mx-auto mb-4" />
-                  <p className="text-rose-nude-600 mb-4">
-                    Nenhum QR Code carregado
-                  </p>
-                  <Label htmlFor="qrCode" className="cursor-pointer">
-                    <div className="flex items-center justify-center gap-2 bg-rose-nude-100 hover:bg-rose-nude-200 text-rose-nude-700 px-4 py-2 rounded-lg transition-colors">
-                      <Upload className="h-4 w-4" />
-                      Carregar QR Code
-                    </div>
-                  </Label>
-                  <Input
-                    id="qrCode"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleQrCodeUpload}
-                    className="hidden"
-                  />
-                </div>
-                <p className="text-xs text-rose-nude-500">
-                  Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="border-rose-nude-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Formas de Pagamento
-            </CardTitle>
-            <CardDescription>
-              Selecione as formas de pagamento aceitas
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {availableMethods.map((method) => (
-              <div key={method} className="flex items-center justify-between">
-                <Label htmlFor={method} className="text-rose-nude-700">
-                  {method}
-                </Label>
-                <Switch
-                  id={method}
-                  checked={paymentData.paymentMethods.includes(method)}
-                  onCheckedChange={(checked) => handleMethodToggle(method, checked)}
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Button type="submit" className="bg-rose-nude-500 hover:bg-rose-nude-600">
-          Salvar Configurações
-        </Button>
-      </form>
-
-      <Card className="border-rose-nude-200">
-        <CardHeader>
-          <CardTitle>Prévia das Configurações</CardTitle>
-          <CardDescription>
-            Como as configurações aparecerão para os clientes
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 bg-rose-nude-50 rounded-lg">
-            <h4 className="font-medium text-rose-nude-800 mb-2">Condições de Pagamento:</h4>
-            <ul className="text-sm text-rose-nude-600 space-y-1">
-              <li>• Entrada de {paymentData.advancePercentage}% via PIX no ato do agendamento</li>
-              <li>• Formas de pagamento aceitas: {paymentData.paymentMethods.join(", ")}</li>
-              <li>• Chave PIX: {paymentData.pixKey}</li>
-              {paymentData.qrCodeImage && <li>• QR Code disponível para pagamento</li>}
-            </ul>
-          </div>
-          {paymentData.qrCodeImage && (
-            <div className="text-center">
-              <p className="text-sm text-rose-nude-600 mb-2">QR Code PIX:</p>
-              <img 
-                src={paymentData.qrCodeImage} 
-                alt="QR Code PIX Preview" 
-                className="w-32 h-32 object-contain border border-rose-nude-200 rounded-lg mx-auto"
-              />
             </div>
-          )}
+
+            <div className="space-y-3">
+              <Label>Formas de Pagamento Aceitas</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {paymentMethods.map((method) => (
+                  <div key={method.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={method.id}
+                      checked={formData.paymentMethods.includes(method.id)}
+                      onCheckedChange={(checked) => handleMethodChange(method.id, checked as boolean)}
+                    />
+                    <Label htmlFor={method.id} className="text-sm">
+                      {method.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Button type="submit" className="bg-rose-nude-500 hover:bg-rose-nude-600">
+              Salvar Configurações
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

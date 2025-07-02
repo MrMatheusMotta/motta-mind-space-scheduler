@@ -17,10 +17,12 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const Booking = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { settings } = useAdminSettings();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedService, setSelectedService] = useState("");
@@ -34,32 +36,30 @@ const Booking = () => {
     }
   }, [user, navigate]);
 
-  const services = [
-    { id: "anamnese", name: "Anamnese", price: 160, description: "Primeira consulta - avaliação inicial" },
-    { id: "quinzenal", name: "Acompanhamento Quinzenal", priceOnline: 280, pricePresencial: 300, description: "Sessões a cada 15 dias" },
-    { id: "mensal", name: "Acompanhamento Mensal", priceOnline: 380, pricePresencial: 400, description: "Sessões mensais" },
-    { id: "isolado", name: "Atendimento Isolado", priceOnline: 120, pricePresencial: 150, description: "Sessão avulsa" }
-  ];
-
   const timeSlots = [
     "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
   ];
 
   const getCurrentPrice = () => {
-    const service = services.find(s => s.id === selectedService);
+    const service = settings.services.find(s => s.id === selectedService);
     if (!service) return 0;
     
-    if (service.id === "anamnese") return service.price;
+    if (selectedService === "1") return service.price; // Anamnese only has one price
     
     return selectedType === "online" ? 
-      (service as any).priceOnline : 
-      (service as any).pricePresencial;
+      (service.priceOnline || service.price) : 
+      service.price;
+  };
+
+  const getAdvanceAmount = () => {
+    const totalPrice = getCurrentPrice();
+    return (totalPrice * settings.payment.advancePercentage) / 100;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !selectedTime || !selectedService || !selectedType) {
+    if (!selectedDate || !selectedTime || !selectedService || (!selectedType && selectedService !== "1")) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
@@ -67,19 +67,24 @@ const Booking = () => {
     setIsLoading(true);
 
     try {
+      const selectedServiceData = settings.services.find(s => s.id === selectedService);
+      
       const { error } = await supabase
         .from('appointments')
         .insert({
           user_id: user?.id,
           date: format(selectedDate, 'yyyy-MM-dd'),
           time: selectedTime,
-          service: services.find(s => s.id === selectedService)?.name,
-          type: selectedType,
+          service: selectedServiceData?.name || 'Serviço não encontrado',
+          type: selectedType || 'presencial',
           notes: notes || null,
           status: 'agendado'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao criar agendamento:', error);
+        throw error;
+      }
 
       toast.success("Agendamento realizado com sucesso!");
       navigate("/dashboard");
@@ -107,7 +112,6 @@ const Booking = () => {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Formulário de Agendamento */}
             <div className="lg:col-span-2">
               <Card className="border-rose-nude-200 shadow-lg">
                 <CardHeader>
@@ -118,7 +122,6 @@ const Booking = () => {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Seleção de Serviço */}
                     <div className="space-y-3">
                       <Label className="text-rose-nude-700 font-medium">Tipo de Serviço *</Label>
                       <Select value={selectedService} onValueChange={setSelectedService}>
@@ -126,11 +129,19 @@ const Booking = () => {
                           <SelectValue placeholder="Selecione o tipo de consulta" />
                         </SelectTrigger>
                         <SelectContent>
-                          {services.map((service) => (
+                          {settings.services.map((service) => (
                             <SelectItem key={service.id} value={service.id}>
                               <div className="flex flex-col">
-                                <span className="font-medium">{service.name}</span>
-                                <span className="text-sm text-rose-nude-600">{service.description}</span>
+                                <div className="flex justify-between items-center w-full">
+                                  <span className="font-medium">{service.name}</span>
+                                  <span className="text-sm text-rose-nude-600 ml-4">
+                                    R$ {service.price.toFixed(2)}
+                                    {service.priceOnline && service.priceOnline !== service.price && (
+                                      <span> / Online: R$ {service.priceOnline.toFixed(2)}</span>
+                                    )}
+                                  </span>
+                                </div>
+                                <span className="text-sm text-rose-nude-600 text-left">{service.description}</span>
                               </div>
                             </SelectItem>
                           ))}
@@ -138,8 +149,7 @@ const Booking = () => {
                       </Select>
                     </div>
 
-                    {/* Modalidade (Online/Presencial) */}
-                    {selectedService && selectedService !== "anamnese" && (
+                    {selectedService && selectedService !== "1" && (
                       <div className="space-y-3">
                         <Label className="text-rose-nude-700 font-medium">Modalidade *</Label>
                         <div className="grid grid-cols-2 gap-4">
@@ -178,7 +188,6 @@ const Booking = () => {
                       </div>
                     )}
 
-                    {/* Seleção de Data */}
                     <div className="space-y-3">
                       <Label className="text-rose-nude-700 font-medium">Data da Consulta *</Label>
                       <Popover>
@@ -207,7 +216,6 @@ const Booking = () => {
                       </Popover>
                     </div>
 
-                    {/* Seleção de Horário */}
                     <div className="space-y-3">
                       <Label className="text-rose-nude-700 font-medium">Horário *</Label>
                       <div className="grid grid-cols-3 gap-3">
@@ -229,7 +237,6 @@ const Booking = () => {
                       </div>
                     </div>
 
-                    {/* Observações */}
                     <div className="space-y-3">
                       <Label htmlFor="notes" className="text-rose-nude-700 font-medium">
                         Observações (Opcional)
@@ -256,7 +263,6 @@ const Booking = () => {
               </Card>
             </div>
 
-            {/* Resumo do Agendamento */}
             <div>
               <Card className="border-rose-nude-200 shadow-lg sticky top-8">
                 <CardHeader>
@@ -268,7 +274,7 @@ const Booking = () => {
                       <div className="flex justify-between items-start">
                         <span className="text-sm text-rose-nude-600">Serviço:</span>
                         <span className="text-sm font-medium text-right">
-                          {services.find(s => s.id === selectedService)?.name}
+                          {settings.services.find(s => s.id === selectedService)?.name}
                         </span>
                       </div>
                       
@@ -295,11 +301,19 @@ const Booking = () => {
                         </div>
                       )}
                       
-                      <div className="border-t pt-3 mt-4">
+                      <div className="border-t pt-3 mt-4 space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="font-medium text-rose-nude-800">Total:</span>
+                          <span className="text-sm text-rose-nude-600">Valor Total:</span>
+                          <span className="text-sm font-medium">
+                            R$ {getCurrentPrice().toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-rose-nude-600">
+                            Adiantamento ({settings.payment.advancePercentage}%):
+                          </span>
                           <span className="text-lg font-bold text-rose-nude-800">
-                            R$ {getCurrentPrice().toLocaleString('pt-BR')}
+                            R$ {getAdvanceAmount().toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -314,7 +328,6 @@ const Booking = () => {
                 </CardContent>
               </Card>
 
-              {/* Informações do Consultório */}
               <Card className="border-rose-nude-200 shadow-lg mt-6">
                 <CardHeader>
                   <CardTitle className="text-rose-nude-800 flex items-center">
@@ -324,9 +337,8 @@ const Booking = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm text-rose-nude-600">
-                    <p className="font-medium">Av Cardoso Moreira, 193, Centro</p>
-                    <p>Itaperuna - RJ, CEP 28300-000</p>
-                    <p>Edifício Rotary, 2º andar, sala 208</p>
+                    <p className="font-medium">{settings.clinic.address}</p>
+                    <p>{settings.clinic.city}</p>
                   </div>
                 </CardContent>
               </Card>
