@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -179,7 +178,6 @@ const ScheduleManager = () => {
                         <Switch
                           checked={slot.enabled}
                           onCheckedChange={() => toggleSlot(dayIndex, slot.id)}
-                          size="sm"
                         />
                         <span className={`text-sm ${slot.enabled ? 'text-rose-nude-800' : 'text-gray-400'}`}>
                           {slot.time}

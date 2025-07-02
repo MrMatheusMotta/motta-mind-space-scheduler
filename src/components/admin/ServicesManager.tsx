@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 interface Service {
   id: string;
@@ -14,58 +15,39 @@ interface Service {
   description: string;
   duration: number;
   price: number;
+  priceOnline?: number;
 }
 
 const ServicesManager = () => {
-  const [services, setServices] = useState<Service[]>([
-    {
-      id: "1",
-      name: "Terapia Individual",
-      description: "Atendimento psicológico individual para mulheres e crianças",
-      duration: 50,
-      price: 120
-    },
-    {
-      id: "2", 
-      name: "Terapia Infantil",
-      description: "Atendimento especializado para crianças",
-      duration: 50,
-      price: 100
-    },
-    {
-      id: "3",
-      name: "Orientação Familiar",
-      description: "Orientação para famílias com foco no bem-estar infantil",
-      duration: 60,
-      price: 150
-    }
-  ]);
-
+  const { settings, updateServices } = useAdminSettings();
   const [isEditing, setIsEditing] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     duration: 50,
-    price: 0
+    price: 0,
+    priceOnline: 0
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingService) {
-      setServices(services.map(service => 
+      const updatedServices = settings.services.map(service => 
         service.id === editingService.id 
-          ? { ...editingService, ...formData }
+          ? { ...editingService, ...formData, priceOnline: formData.priceOnline || undefined }
           : service
-      ));
+      );
+      updateServices(updatedServices);
       toast.success("Serviço atualizado com sucesso!");
     } else {
       const newService: Service = {
         id: Date.now().toString(),
-        ...formData
+        ...formData,
+        priceOnline: formData.priceOnline || undefined
       };
-      setServices([...services, newService]);
+      updateServices([...settings.services, newService]);
       toast.success("Serviço criado com sucesso!");
     }
 
@@ -73,7 +55,7 @@ const ServicesManager = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", description: "", duration: 50, price: 0 });
+    setFormData({ name: "", description: "", duration: 50, price: 0, priceOnline: 0 });
     setIsEditing(false);
     setEditingService(null);
   };
@@ -84,13 +66,15 @@ const ServicesManager = () => {
       name: service.name,
       description: service.description,
       duration: service.duration,
-      price: service.price
+      price: service.price,
+      priceOnline: service.priceOnline || 0
     });
     setIsEditing(true);
   };
 
   const handleDelete = (id: string) => {
-    setServices(services.filter(service => service.id !== id));
+    const updatedServices = settings.services.filter(service => service.id !== id);
+    updateServices(updatedServices);
     toast.success("Serviço removido com sucesso!");
   };
 
@@ -121,7 +105,22 @@ const ServicesManager = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Preço (R$)</Label>
+                <Label htmlFor="duration">Duração (minutos)</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  min="15"
+                  step="5"
+                  value={formData.duration}
+                  onChange={(e) => setFormData({...formData, duration: Number(e.target.value)})}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Preço Presencial (R$)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -132,19 +131,17 @@ const ServicesManager = () => {
                   required
                 />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="duration">Duração (minutos)</Label>
-              <Input
-                id="duration"
-                type="number"
-                min="15"
-                step="5"
-                value={formData.duration}
-                onChange={(e) => setFormData({...formData, duration: Number(e.target.value)})}
-                required
-              />
+              <div className="space-y-2">
+                <Label htmlFor="priceOnline">Preço Online (R$) - Opcional</Label>
+                <Input
+                  id="priceOnline"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.priceOnline}
+                  onChange={(e) => setFormData({...formData, priceOnline: Number(e.target.value)})}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -173,7 +170,7 @@ const ServicesManager = () => {
 
       <div className="grid gap-4">
         <h3 className="text-lg font-medium text-rose-nude-800">Serviços Disponíveis</h3>
-        {services.map((service) => (
+        {settings.services.map((service) => (
           <Card key={service.id} className="border-rose-nude-200">
             <CardContent className="pt-6">
               <div className="flex justify-between items-start">
@@ -182,7 +179,10 @@ const ServicesManager = () => {
                   <p className="text-sm text-rose-nude-600">{service.description}</p>
                   <div className="flex gap-4 text-sm text-rose-nude-700">
                     <span>Duração: {service.duration} min</span>
-                    <span>Preço: R$ {service.price.toFixed(2)}</span>
+                    <span>Presencial: R$ {service.price.toFixed(2)}</span>
+                    {service.priceOnline && (
+                      <span>Online: R$ {service.priceOnline.toFixed(2)}</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">

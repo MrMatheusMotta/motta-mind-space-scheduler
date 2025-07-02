@@ -5,257 +5,141 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { CreditCard, Banknote, Smartphone, DollarSign } from "lucide-react";
+import { CreditCard, Percent, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const PaymentSettings = () => {
-  const [paymentMethods, setPaymentMethods] = useState({
-    cash: { enabled: true, description: "Pagamento em dinheiro no local" },
-    card: { enabled: true, description: "Cartão de crédito ou débito" },
-    pix: { enabled: true, description: "Pagamento via PIX" },
-    bank_transfer: { enabled: false, description: "Transferência bancária" }
-  });
+  const { settings, updatePayment } = useAdminSettings();
+  const [paymentData, setPaymentData] = useState(settings.payment);
 
-  const [pixData, setPixData] = useState({
-    key: "psicologadaianesilva@outlook.com",
-    name: "Daiane Silva",
-    bank: "Banco do Brasil"
-  });
-
-  const [bankData, setBankData] = useState({
-    bank: "Banco do Brasil",
-    agency: "1234-5",
-    account: "12345-6",
-    accountHolder: "Daiane Silva",
-    cpf: "123.456.789-00"
-  });
-
-  const [policies, setPolicies] = useState({
-    cancellationPolicy: "Cancelamentos devem ser feitos com pelo menos 24 horas de antecedência.",
-    paymentPolicy: "O pagamento deve ser realizado no momento da consulta.",
-    refundPolicy: "Reembolsos são processados em até 7 dias úteis para cancelamentos com mais de 48 horas de antecedência."
-  });
-
-  const togglePaymentMethod = (method: string) => {
-    setPaymentMethods(prev => ({
-      ...prev,
-      [method]: {
-        ...prev[method as keyof typeof prev],
-        enabled: !prev[method as keyof typeof prev].enabled
-      }
-    }));
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updatePayment(paymentData);
+    toast.success("Configurações de pagamento atualizadas com sucesso!");
   };
 
-  const saveSettings = () => {
-    toast.success("Configurações de pagamento salvas com sucesso!");
+  const handleMethodToggle = (method: string, enabled: boolean) => {
+    const methods = enabled 
+      ? [...paymentData.paymentMethods, method]
+      : paymentData.paymentMethods.filter(m => m !== method);
+    
+    setPaymentData(prev => ({ ...prev, paymentMethods: methods }));
   };
+
+  const availableMethods = ["PIX", "Cartão de Crédito", "Cartão de Débito", "Dinheiro", "Transferência Bancária"];
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-rose-nude-800">Configurações de Pagamento</h2>
-        <p className="text-rose-nude-600">Configure as formas de pagamento aceitas pela sua clínica.</p>
+        <p className="text-rose-nude-600">Configure as formas de pagamento e valores de entrada.</p>
       </div>
 
-      <Card className="border-rose-nude-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Métodos de Pagamento
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Banknote className="h-5 w-5 text-rose-nude-500" />
-                <div>
-                  <h4 className="font-medium">Dinheiro</h4>
-                  <p className="text-sm text-gray-600">{paymentMethods.cash.description}</p>
-                </div>
-              </div>
-              <Switch
-                checked={paymentMethods.cash.enabled}
-                onCheckedChange={() => togglePaymentMethod('cash')}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <CreditCard className="h-5 w-5 text-rose-nude-500" />
-                <div>
-                  <h4 className="font-medium">Cartão</h4>
-                  <p className="text-sm text-gray-600">{paymentMethods.card.description}</p>
-                </div>
-              </div>
-              <Switch
-                checked={paymentMethods.card.enabled}
-                onCheckedChange={() => togglePaymentMethod('card')}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Smartphone className="h-5 w-5 text-rose-nude-500" />
-                <div>
-                  <h4 className="font-medium">PIX</h4>
-                  <p className="text-sm text-gray-600">{paymentMethods.pix.description}</p>
-                </div>
-              </div>
-              <Switch
-                checked={paymentMethods.pix.enabled}
-                onCheckedChange={() => togglePaymentMethod('pix')}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <DollarSign className="h-5 w-5 text-rose-nude-500" />
-                <div>
-                  <h4 className="font-medium">Transferência Bancária</h4>
-                  <p className="text-sm text-gray-600">{paymentMethods.bank_transfer.description}</p>
-                </div>
-              </div>
-              <Switch
-                checked={paymentMethods.bank_transfer.enabled}
-                onCheckedChange={() => togglePaymentMethod('bank_transfer')}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {paymentMethods.pix.enabled && (
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="border-rose-nude-200">
           <CardHeader>
-            <CardTitle>Dados PIX</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Percent className="h-5 w-5" />
+              Valor de Entrada
+            </CardTitle>
+            <CardDescription>
+              Defina o percentual de entrada para confirmação do agendamento
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="pixKey">Chave PIX</Label>
-                <Input
-                  id="pixKey"
-                  value={pixData.key}
-                  onChange={(e) => setPixData({...pixData, key: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pixName">Nome do Titular</Label>
-                <Input
-                  id="pixName"
-                  value={pixData.name}
-                  onChange={(e) => setPixData({...pixData, name: e.target.value})}
-                />
-              </div>
-            </div>
             <div className="space-y-2">
-              <Label htmlFor="pixBank">Banco</Label>
+              <Label htmlFor="advance">Percentual de Entrada (%)</Label>
               <Input
-                id="pixBank"
-                value={pixData.bank}
-                onChange={(e) => setPixData({...pixData, bank: e.target.value})}
+                id="advance"
+                type="number"
+                min="0"
+                max="100"
+                value={paymentData.advancePercentage}
+                onChange={(e) => setPaymentData(prev => ({ 
+                  ...prev, 
+                  advancePercentage: Number(e.target.value) 
+                }))}
+              />
+              <p className="text-sm text-rose-nude-600">
+                Valor atual: {paymentData.advancePercentage}% do valor da consulta
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-rose-nude-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Chave PIX
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="pixKey">Chave PIX</Label>
+              <Input
+                id="pixKey"
+                value={paymentData.pixKey}
+                onChange={(e) => setPaymentData(prev => ({ 
+                  ...prev, 
+                  pixKey: e.target.value 
+                }))}
+                placeholder="Digite sua chave PIX"
               />
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {paymentMethods.bank_transfer.enabled && (
         <Card className="border-rose-nude-200">
           <CardHeader>
-            <CardTitle>Dados Bancários</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Formas de Pagamento
+            </CardTitle>
+            <CardDescription>
+              Selecione as formas de pagamento aceitas
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="bankName">Banco</Label>
-                <Input
-                  id="bankName"
-                  value={bankData.bank}
-                  onChange={(e) => setBankData({...bankData, bank: e.target.value})}
+            {availableMethods.map((method) => (
+              <div key={method} className="flex items-center justify-between">
+                <Label htmlFor={method} className="text-rose-nude-700">
+                  {method}
+                </Label>
+                <Switch
+                  id={method}
+                  checked={paymentData.paymentMethods.includes(method)}
+                  onCheckedChange={(checked) => handleMethodToggle(method, checked)}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="agency">Agência</Label>
-                <Input
-                  id="agency"
-                  value={bankData.agency}
-                  onChange={(e) => setBankData({...bankData, agency: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="account">Conta</Label>
-                <Input
-                  id="account"
-                  value={bankData.account}
-                  onChange={(e) => setBankData({...bankData, account: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="accountHolder">Titular</Label>
-                <Input
-                  id="accountHolder"
-                  value={bankData.accountHolder}
-                  onChange={(e) => setBankData({...bankData, accountHolder: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cpf">CPF</Label>
-              <Input
-                id="cpf"
-                value={bankData.cpf}
-                onChange={(e) => setBankData({...bankData, cpf: e.target.value})}
-              />
-            </div>
+            ))}
           </CardContent>
         </Card>
-      )}
+
+        <Button type="submit" className="bg-rose-nude-500 hover:bg-rose-nude-600">
+          Salvar Configurações
+        </Button>
+      </form>
 
       <Card className="border-rose-nude-200">
         <CardHeader>
-          <CardTitle>Políticas de Pagamento</CardTitle>
+          <CardTitle>Prévia das Configurações</CardTitle>
+          <CardDescription>
+            Como as configurações aparecerão para os clientes
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="cancellation">Política de Cancelamento</Label>
-            <Textarea
-              id="cancellation"
-              value={policies.cancellationPolicy}
-              onChange={(e) => setPolicies({...policies, cancellationPolicy: e.target.value})}
-              rows={3}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="payment">Política de Pagamento</Label>
-            <Textarea
-              id="payment"
-              value={policies.paymentPolicy}
-              onChange={(e) => setPolicies({...policies, paymentPolicy: e.target.value})}
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="refund">Política de Reembolso</Label>
-            <Textarea
-              id="refund"
-              value={policies.refundPolicy}
-              onChange={(e) => setPolicies({...policies, refundPolicy: e.target.value})}
-              rows={3}
-            />
+          <div className="p-4 bg-rose-nude-50 rounded-lg">
+            <h4 className="font-medium text-rose-nude-800 mb-2">Condições de Pagamento:</h4>
+            <ul className="text-sm text-rose-nude-600 space-y-1">
+              <li>• Entrada de {paymentData.advancePercentage}% via PIX no ato do agendamento</li>
+              <li>• Formas de pagamento aceitas: {paymentData.paymentMethods.join(", ")}</li>
+              <li>• Chave PIX: {paymentData.pixKey}</li>
+            </ul>
           </div>
         </CardContent>
       </Card>
-
-      <Button onClick={saveSettings} className="bg-rose-nude-500 hover:bg-rose-nude-600">
-        Salvar Configurações
-      </Button>
     </div>
   );
 };

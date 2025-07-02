@@ -7,20 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const ClinicInfo = () => {
-  const [clinicData, setClinicData] = useState({
-    name: "Consultório Dra. Daiane Silva",
-    address: "Rua das Flores, 123 - Centro",
-    city: "São Paulo, SP",
-    phone: "(11) 99999-9999",
-    email: "psicologadaianesilva@outlook.com",
-    description: "Atendimento psicológico especializado para mulheres e crianças, oferecendo um ambiente acolhedor e profissional para seu bem-estar emocional.",
-    openingHours: "Segunda a Sexta: 8h às 18h"
-  });
+  const { settings, updateClinic } = useAdminSettings();
+  const [clinicData, setClinicData] = useState(settings.clinic);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    updateClinic(clinicData);
     toast.success("Informações da clínica atualizadas com sucesso!");
   };
 

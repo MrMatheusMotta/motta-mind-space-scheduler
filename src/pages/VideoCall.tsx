@@ -5,17 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Video, Mic, MicOff, VideoOff, Phone, MessageSquare, Users, Settings } from "lucide-react";
+import { Video, Mic, MicOff, VideoOff, Phone, MessageSquare, Users, Settings, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const VideoCall = () => {
   const { user } = useAuth();
+  const { settings } = useAdminSettings();
   const navigate = useNavigate();
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isAudioOn, setIsAudioOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  const [sessionDuration] = useState(50); // Duration from admin settings
+  const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -28,11 +32,42 @@ const VideoCall = () => {
     let interval: NodeJS.Timeout;
     if (isCallActive) {
       interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
+        setCallDuration(prev => {
+          const newDuration = prev + 1;
+          const remainingMinutes = Math.floor((sessionDuration * 60 - newDuration) / 60);
+          
+          // Show warning in last 5 minutes
+          if (remainingMinutes <= 5 && remainingMinutes > 0 && !showWarning) {
+            setShowWarning(true);
+            toast.warning(`Atenção: Restam ${remainingMinutes} minutos para o fim da sessão`, {
+              duration: 5000
+            });
+          }
+          
+          // Show minute-by-minute warnings in last 5 minutes
+          if (remainingMinutes <= 5 && remainingMinutes > 0) {
+            const remainingSeconds = (sessionDuration * 60 - newDuration) % 60;
+            if (remainingSeconds === 0) {
+              if (remainingMinutes === 1) {
+                toast.error("Último minuto da sessão!", { duration: 3000 });
+              } else {
+                toast.warning(`${remainingMinutes} minutos restantes`, { duration: 3000 });
+              }
+            }
+          }
+          
+          // End call when time is up
+          if (newDuration >= sessionDuration * 60) {
+            handleEndCall();
+            toast.error("Sessão encerrada - Tempo limite atingido");
+          }
+          
+          return newDuration;
+        });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isCallActive]);
+  }, [isCallActive, sessionDuration, showWarning]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -40,19 +75,29 @@ const VideoCall = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getRemainingTime = () => {
+    const remainingSeconds = (sessionDuration * 60) - callDuration;
+    return formatDuration(Math.max(0, remainingSeconds));
+  };
+
   const handleStartCall = () => {
     setIsCallActive(true);
+    setShowWarning(false);
     toast.success("Chamada iniciada com sucesso!");
   };
 
   const handleEndCall = () => {
     setIsCallActive(false);
     setCallDuration(0);
+    setShowWarning(false);
     toast.info("Chamada encerrada");
     navigate("/dashboard");
   };
 
   if (!user) return null;
+
+  const remainingMinutes = Math.floor(((sessionDuration * 60) - callDuration) / 60);
+  const isNearEnd = remainingMinutes <= 5 && isCallActive;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
@@ -65,7 +110,27 @@ const VideoCall = () => {
             <p className="text-lg text-rose-nude-600">
               Bem-vindo(a), {user.full_name?.split(' ')[0] || 'Usuário'}! Sua consulta online está pronta para começar.
             </p>
+            {isCallActive && (
+              <div className="mt-4">
+                <Badge variant={isNearEnd ? "destructive" : "default"} className="text-lg px-4 py-2">
+                  Tempo restante: {getRemainingTime()}
+                </Badge>
+              </div>
+            )}
           </div>
+
+          {isNearEnd && (
+            <Card className="border-amber-200 bg-amber-50 mb-6">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 text-amber-800">
+                  <AlertTriangle className="w-6 h-6" />
+                  <p className="font-medium">
+                    Atenção: A sessão está próxima do fim. Restam {remainingMinutes} minutos.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid lg:grid-cols-4 gap-6">
             {/* Área Principal da Videochamada */}
@@ -77,6 +142,7 @@ const VideoCall = () => {
                       <div className="text-center text-white space-y-4">
                         <Video className="w-16 h-16 mx-auto opacity-50" />
                         <p className="text-lg">Pronto para iniciar a videochamada</p>
+                        <p className="text-sm opacity-75">Duração da sessão: {sessionDuration} minutos</p>
                         <Button 
                           onClick={handleStartCall}
                           className="bg-green-600 hover:bg-green-700 text-white"
@@ -154,16 +220,28 @@ const VideoCall = () => {
                     <span className="text-sm font-medium">Consulta Online</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-sm text-rose-nude-600">Duração:</span>
+                    <span className="text-sm font-medium">{sessionDuration} minutos</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-sm text-rose-nude-600">Status:</span>
                     <Badge variant={isCallActive ? "default" : "secondary"} className="text-xs">
                       {isCallActive ? "Em andamento" : "Aguardando"}
                     </Badge>
                   </div>
                   {isCallActive && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-rose-nude-600">Duração:</span>
-                      <span className="text-sm font-medium">{formatDuration(callDuration)}</span>
-                    </div>
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-rose-nude-600">Tempo decorrido:</span>
+                        <span className="text-sm font-medium">{formatDuration(callDuration)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-rose-nude-600">Tempo restante:</span>
+                        <span className={`text-sm font-medium ${isNearEnd ? 'text-red-600' : ''}`}>
+                          {getRemainingTime()}
+                        </span>
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>

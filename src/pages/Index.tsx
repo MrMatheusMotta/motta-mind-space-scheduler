@@ -5,38 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { Clock, MapPin, Phone, Mail, Star, Heart, Brain, Users, CheckCircle, Shield, Calendar } from "lucide-react";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const Index = () => {
-  const services = [
-    {
-      name: "Anamnese",
-      price: "R$ 160,00",
-      description: "Primeira consulta para avaliação completa",
-      duration: "90 minutos",
-      type: "presencial"
-    },
-    {
-      name: "Acompanhamento Quinzenal",
-      priceOnline: "R$ 280,00",
-      pricePresencial: "R$ 300,00",
-      description: "Sessões a cada 15 dias",
-      duration: "50 minutos"
-    },
-    {
-      name: "Acompanhamento Mensal",
-      priceOnline: "R$ 380,00",
-      pricePresencial: "R$ 400,00",
-      description: "Sessões mensais de acompanhamento",
-      duration: "50 minutos"
-    },
-    {
-      name: "Atendimento Isolado",
-      priceOnline: "R$ 120,00",
-      pricePresencial: "R$ 150,00",
-      description: "Sessão única quando necessário",
-      duration: "50 minutos"
-    }
-  ];
+  const { settings } = useAdminSettings();
 
   const testimonials = [
     {
@@ -46,7 +18,7 @@ const Index = () => {
       image: "/placeholder.svg"
     },
     {
-      name: "Ana Silva",
+      name: "Ana Silva", 
       rating: 5,
       comment: "Profissional excepcional! Seu conhecimento em TCC é impressionante e sempre me sinto acolhida nas sessões.",
       image: "/placeholder.svg"
@@ -165,7 +137,7 @@ const Index = () => {
             </div>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {services.map((service, index) => (
+              {settings.services.map((service, index) => (
                 <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="text-rose-nude-800 text-lg">{service.name}</CardTitle>
@@ -173,18 +145,17 @@ const Index = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {service.price && (
-                        <div className="text-2xl font-bold text-rose-nude-700">{service.price}</div>
-                      )}
-                      {service.priceOnline && (
+                      {!service.priceOnline ? (
+                        <div className="text-2xl font-bold text-rose-nude-700">R$ {service.price.toFixed(2)}</div>
+                      ) : (
                         <div className="space-y-1">
-                          <div className="text-lg font-semibold text-rose-nude-700">Online: {service.priceOnline}</div>
-                          <div className="text-lg font-semibold text-rose-nude-700">Presencial: {service.pricePresencial}</div>
+                          <div className="text-lg font-semibold text-rose-nude-700">Online: R$ {service.priceOnline.toFixed(2)}</div>
+                          <div className="text-lg font-semibold text-rose-nude-700">Presencial: R$ {service.price.toFixed(2)}</div>
                         </div>
                       )}
                       <div className="flex items-center text-sm text-rose-nude-600">
                         <Clock className="w-4 h-4 mr-2" />
-                        {service.duration}
+                        {service.duration} minutos
                       </div>
                     </div>
                   </CardContent>
@@ -198,7 +169,7 @@ const Index = () => {
                 <div className="text-sm md:text-base text-rose-nude-800">
                   <p className="font-semibold mb-2">Condições de Agendamento:</p>
                   <ul className="space-y-1 text-rose-nude-700">
-                    <li>• Pagamento de 50% via PIX no ato do agendamento</li>
+                    <li>• Pagamento de {settings.payment.advancePercentage}% via PIX no ato do agendamento</li>
                     <li>• Remarcações com 48h de antecedência</li>
                     <li>• Faltas injustificáveis não têm reembolso</li>
                     <li>• <strong>Atendimento exclusivo para mulheres e crianças</strong></li>
@@ -265,8 +236,8 @@ const Index = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-rose-nude-700">
-                  <p>Av Cardoso Moreira, 193, Centro</p>
-                  <p>Itaperuna - RJ, CEP 28300-000</p>
+                  <p>{settings.clinic.address}</p>
+                  <p>{settings.clinic.city}</p>
                   <p className="font-medium">Edifício Rotary, 2º andar, sala 208</p>
                 </CardContent>
               </Card>
@@ -278,15 +249,15 @@ const Index = () => {
                 <CardContent className="space-y-4">
                   <div className="flex items-center text-rose-nude-700">
                     <Phone className="w-5 h-5 mr-3" />
-                    <span>(22) 99972-3737</span>
+                    <span>{settings.clinic.phone}</span>
                   </div>
                   <div className="flex items-center text-rose-nude-700">
                     <Mail className="w-5 h-5 mr-3" />
-                    <span className="break-all">psicologadaianesilva@outlook.com</span>
+                    <span className="break-all">{settings.clinic.email}</span>
                   </div>
                   <div className="flex items-center text-rose-nude-700">
                     <Clock className="w-5 h-5 mr-3" />
-                    <span>Atendimentos: 18h às 21h (dias úteis)</span>
+                    <span>{settings.clinic.openingHours}</span>
                   </div>
                 </CardContent>
               </Card>
