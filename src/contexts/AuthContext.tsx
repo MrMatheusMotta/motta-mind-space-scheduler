@@ -45,7 +45,6 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Função para traduzir mensagens de erro do Supabase
 const translateError = (error: string): string => {
   const translations: { [key: string]: string } = {
     'Invalid login credentials': 'Email ou senha incorretos',
@@ -85,23 +84,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .eq('id', session.user.id)
                 .single();
 
-              const isAdmin = session.user.email === 'admin@daianemotta.com';
+              const isAdmin = session.user.email === 'psicologadaianesilva@outlook.com';
               
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
-                full_name: profile?.full_name || (isAdmin ? 'Administrador' : ''),
+                full_name: profile?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
                 phone: profile?.phone || '',
                 cpf: profile?.cpf || '',
                 role: isAdmin ? 'admin' : 'user'
               });
             } catch (error) {
               console.error('Erro ao buscar perfil:', error);
-              const isAdmin = session.user.email === 'admin@daianemotta.com';
+              const isAdmin = session.user.email === 'psicologadaianesilva@outlook.com';
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
-                full_name: isAdmin ? 'Administrador' : '',
+                full_name: isAdmin ? 'Dra. Daiane Silva' : '',
                 role: isAdmin ? 'admin' : 'user'
               });
             }
@@ -130,13 +129,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('Tentando fazer login com:', { email });
       
-      // Primeiro, vamos tentar fazer logout de qualquer sessão existente
-      await supabase.auth.signOut();
-      
-      // Aguardar um pouco para garantir que o logout foi processado
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Agora fazer o login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -146,7 +138,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Erro no login:', error);
         
         // Se for o admin e der erro de credenciais inválidas, vamos tentar criar
-        if (email === 'admin@daianemotta.com' && error.message === 'Invalid login credentials') {
+        if (email === 'psicologadaianesilva@outlook.com' && error.message === 'Invalid login credentials') {
           console.log('Tentando criar usuário admin...');
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email,
@@ -154,7 +146,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             options: {
               emailRedirectTo: `${window.location.origin}/`,
               data: {
-                full_name: 'Administrador',
+                full_name: 'Dra. Daiane Silva',
               }
             }
           });
@@ -165,10 +157,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
 
           console.log('Admin criado, tentando login novamente...');
-          // Aguardar um momento
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          // Tentar login novamente
           const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
             email,
             password,

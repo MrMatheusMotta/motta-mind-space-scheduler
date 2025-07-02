@@ -134,6 +134,7 @@ const AdminSettings = () => {
             <li>• A nova senha deve ter pelo menos 8 caracteres</li>
             <li>• Recomenda-se usar uma combinação de letras, números e símbolos</li>
             <li>• Após alterar a senha, você precisará fazer login novamente</li>
+            <li>• Email atual: psicologadaianesilva@outlook.com</li>
           </ul>
         </div>
       </CardContent>

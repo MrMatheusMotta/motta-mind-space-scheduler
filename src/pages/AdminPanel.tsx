@@ -1,12 +1,16 @@
+
 import { useState } from "react";
 import Header from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AdminSettings from "@/components/AdminSettings";
+import ServicesManager from "@/components/admin/ServicesManager";
+import ClinicInfo from "@/components/admin/ClinicInfo";
+import ScheduleManager from "@/components/admin/ScheduleManager";
+import AvailabilityManager from "@/components/admin/AvailabilityManager";
+import PaymentSettings from "@/components/admin/PaymentSettings";
+import MessagesManager from "@/components/admin/MessagesManager";
 
 const AdminPanel = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
       <Header />
@@ -33,45 +37,27 @@ const AdminPanel = () => {
           </TabsList>
 
           <TabsContent value="services" className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-rose-nude-800">Serviços</h2>
-              <p className="text-rose-nude-600">Gerencie os serviços oferecidos pelo seu consultório.</p>
-            </div>
+            <ServicesManager />
           </TabsContent>
 
           <TabsContent value="clinic" className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-rose-nude-800">Clínica</h2>
-              <p className="text-rose-nude-600">Informações e configurações da sua clínica.</p>
-            </div>
+            <ClinicInfo />
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-rose-nude-800">Horários</h2>
-              <p className="text-rose-nude-600">Defina os horários de funcionamento do seu consultório.</p>
-            </div>
+            <ScheduleManager />
           </TabsContent>
 
           <TabsContent value="availability" className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-rose-nude-800">Disponibilidade</h2>
-              <p className="text-rose-nude-600">Gerencie a disponibilidade dos profissionais.</p>
-            </div>
+            <AvailabilityManager />
           </TabsContent>
 
           <TabsContent value="payment" className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-rose-nude-800">Pagamento</h2>
-              <p className="text-rose-nude-600">Configure as opções de pagamento aceitas.</p>
-            </div>
+            <PaymentSettings />
           </TabsContent>
 
           <TabsContent value="messages" className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-rose-nude-800">Mensagens</h2>
-              <p className="text-rose-nude-600">Visualize e responda as mensagens dos pacientes.</p>
-            </div>
+            <MessagesManager />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
