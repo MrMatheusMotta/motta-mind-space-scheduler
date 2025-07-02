@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 
 interface AdminSettings {
@@ -23,6 +22,7 @@ interface AdminSettings {
     advancePercentage: number;
     pixKey: string;
     paymentMethods: string[];
+    qrCodeImage?: string;
   };
 }
 
@@ -95,7 +95,8 @@ const defaultSettings: AdminSettings = {
   payment: {
     advancePercentage: 50,
     pixKey: "psicologadaianesilva@outlook.com",
-    paymentMethods: ["PIX", "Cartão de Crédito", "Dinheiro"]
+    paymentMethods: ["PIX", "Cartão de Crédito", "Dinheiro"],
+    qrCodeImage: undefined
   }
 };
 

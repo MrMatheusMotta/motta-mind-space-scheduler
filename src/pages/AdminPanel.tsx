@@ -10,6 +10,7 @@ import AvailabilityManager from "@/components/admin/AvailabilityManager";
 import PaymentSettings from "@/components/admin/PaymentSettings";
 import MessagesManager from "@/components/admin/MessagesManager";
 import HomeContentManager from "@/components/admin/HomeContentManager";
+import AboutContentManager from "@/components/admin/AboutContentManager";
 
 const AdminPanel = () => {
   return (
@@ -27,8 +28,9 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="home" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8 bg-rose-nude-100">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 bg-rose-nude-100">
             <TabsTrigger value="home" className="text-xs sm:text-sm">Página Inicial</TabsTrigger>
+            <TabsTrigger value="about" className="text-xs sm:text-sm">Sobre Mim</TabsTrigger>
             <TabsTrigger value="services" className="text-xs sm:text-sm">Serviços</TabsTrigger>
             <TabsTrigger value="clinic" className="text-xs sm:text-sm">Clínica</TabsTrigger>
             <TabsTrigger value="schedule" className="text-xs sm:text-sm">Horários</TabsTrigger>
@@ -40,6 +42,10 @@ const AdminPanel = () => {
 
           <TabsContent value="home" className="space-y-6">
             <HomeContentManager />
+          </TabsContent>
+
+          <TabsContent value="about" className="space-y-6">
+            <AboutContentManager />
           </TabsContent>
 
           <TabsContent value="services" className="space-y-6">
