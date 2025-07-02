@@ -5,54 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { Clock, MapPin, Phone, Mail, Star, Heart, Brain, Users, CheckCircle, Shield, Calendar } from "lucide-react";
-import { useAdminSettings } from "@/hooks/useAdminSettings";
+import { useAdminSettings, useHomeContent } from "@/hooks/useAdminSettings";
 
 const Index = () => {
   const { settings } = useAdminSettings();
+  const { homeContent } = useHomeContent();
 
-  const testimonials = [
-    {
-      name: "Maria Santos",
-      rating: 5,
-      comment: "A Daiane mudou minha vida! Através da TCC consegui superar minha ansiedade e hoje tenho uma qualidade de vida muito melhor.",
-      image: "/placeholder.svg"
-    },
-    {
-      name: "Ana Silva", 
-      rating: 5,
-      comment: "Profissional excepcional! Seu conhecimento em TCC é impressionante e sempre me sinto acolhida nas sessões.",
-      image: "/placeholder.svg"
-    },
-    {
-      name: "Carla Costa",
-      rating: 5,
-      comment: "Recomendo a todas! Daiane tem uma abordagem muito humana e eficaz. Minha filha autista teve grandes progressos.",
-      image: "/placeholder.svg"
-    }
-  ];
-
-  const features = [
-    {
-      icon: Brain,
-      title: "Terapia Cognitiva Comportamental",
-      description: "Abordagem cientificamente comprovada para diversos transtornos"
-    },
-    {
-      icon: Users,
-      title: "Atendimento Especializado",
-      description: "Exclusivo para mulheres e crianças neuroatípicas"
-    },
-    {
-      icon: Heart,
-      title: "Acolhimento Humanizado",
-      description: "Ambiente seguro e acolhedor para seu bem-estar"
-    },
-    {
-      icon: Shield,
-      title: "Sigilo Profissional",
-      description: "Total confidencialidade em todos os atendimentos"
-    }
-  ];
+  const iconMap = {
+    "Terapia Cognitiva Comportamental": Brain,
+    "Atendimento Especializado": Users,
+    "Acolhimento Humanizado": Heart,
+    "Sigilo Profissional": Shield
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
@@ -65,14 +29,14 @@ const Index = () => {
             <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
               <div className="text-center lg:text-left space-y-6">
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-text leading-tight">
-                  Transforme sua vida com a Terapia Cognitiva Comportamental
+                  {homeContent.hero.title}
                 </h1>
                 <p className="text-lg md:text-xl text-rose-nude-600 leading-relaxed">
-                  Sou Daiane Motta, Terapeuta Cognitiva Comportamental especializada em ajudar mulheres e crianças a superar desafios emocionais e conquistar uma vida mais equilibrada.
+                  {homeContent.hero.subtitle}
                 </p>
                 <div className="p-4 bg-rose-nude-100 rounded-lg border border-rose-nude-200 mb-6">
                   <p className="text-rose-nude-800 font-semibold text-center">
-                    🌸 Atendimento exclusivo para mulheres e crianças 🌸
+                    {homeContent.hero.exclusiveMessage}
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -113,15 +77,18 @@ const Index = () => {
             </div>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {features.map((feature, index) => (
-                <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow text-center">
-                  <CardContent className="p-6">
-                    <feature.icon className="w-12 h-12 text-rose-nude-500 mx-auto mb-4" />
-                    <h3 className="font-semibold text-rose-nude-800 mb-2">{feature.title}</h3>
-                    <p className="text-sm text-rose-nude-600">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {homeContent.features.map((feature, index) => {
+                const IconComponent = iconMap[feature.title as keyof typeof iconMap] || Brain;
+                return (
+                  <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow text-center">
+                    <CardContent className="p-6">
+                      <IconComponent className="w-12 h-12 text-rose-nude-500 mx-auto mb-4" />
+                      <h3 className="font-semibold text-rose-nude-800 mb-2">{feature.title}</h3>
+                      <p className="text-sm text-rose-nude-600">{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -191,7 +158,7 @@ const Index = () => {
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">
-              {testimonials.map((testimonial, index) => (
+              {homeContent.testimonials.map((testimonial, index) => (
                 <Card key={index} className="border-rose-nude-200">
                   <CardContent className="p-6">
                     <div className="flex items-center mb-4">
@@ -219,7 +186,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-12 md:py-16">
+      <section id="contact-section" className="py-12 md:py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
@@ -271,13 +238,13 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Pronta para começar sua transformação?
+              {homeContent.cta.title}
             </h2>
             <p className="text-lg md:text-xl text-rose-nude-100 mb-4">
-              Agende sua consulta hoje e dê o primeiro passo rumo ao seu bem-estar
+              {homeContent.cta.subtitle}
             </p>
             <p className="text-md text-rose-nude-100 mb-8">
-              <strong>Atendimento exclusivo para mulheres e crianças</strong>
+              <strong>{homeContent.cta.exclusiveNote}</strong>
             </p>
             <Button asChild size="lg" className="bg-white text-rose-nude-600 hover:bg-rose-nude-50">
               <Link to="/register">Começar Agora</Link>

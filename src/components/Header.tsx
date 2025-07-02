@@ -16,6 +16,14 @@ const Header = () => {
     setMobileMenuOpen(false);
   };
 
+  const scrollToContact = () => {
+    const contactSection = document.querySelector('#contact-section');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
     <header className="bg-white/95 backdrop-blur-sm border-b border-rose-nude-200 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -37,6 +45,12 @@ const Header = () => {
           <Link to="/about" className="text-rose-nude-700 hover:text-rose-nude-900 transition-colors">
             Sobre Mim
           </Link>
+          <button 
+            onClick={scrollToContact}
+            className="text-rose-nude-700 hover:text-rose-nude-900 transition-colors"
+          >
+            Contato
+          </button>
           {user && (
             <>
               <Link to="/booking" className="text-rose-nude-700 hover:text-rose-nude-900 transition-colors">
@@ -126,6 +140,12 @@ const Header = () => {
             >
               Sobre Mim
             </Link>
+            <button 
+              onClick={scrollToContact}
+              className="block text-rose-nude-700 hover:text-rose-nude-900 transition-colors text-left"
+            >
+              Contato
+            </button>
             {user && (
               <>
                 <Link 
