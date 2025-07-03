@@ -1,11 +1,11 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { Clock, MapPin, Phone, Mail, Star, Heart, Brain, Users, CheckCircle, Shield, Calendar } from "lucide-react";
-import { useAdminSettings, useHomeContent } from "@/hooks/useAdminSettings";
+import { useAdminSettings } from "@/hooks/useAdminSettings";
+import { useHomeContent } from "@/hooks/useHomeContent";
 
 const Index = () => {
   const { settings } = useAdminSettings();
