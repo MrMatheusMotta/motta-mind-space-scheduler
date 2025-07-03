@@ -3,12 +3,33 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { LogOut, User, Calendar, BarChart3, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Fetch user profile data
+  useEffect(() => {
+    if (user?.id) {
+      const fetchUserProfile = async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+
+        if (data && !error) {
+          setUserProfile(data);
+        }
+      };
+
+      fetchUserProfile();
+    }
+  }, [user?.id]);
 
   const handleLogout = () => {
     logout();
@@ -28,6 +49,13 @@ const Header = () => {
   const getUserFirstName = () => {
     if (!user) return 'Usuário';
     
+    // Try to get from userProfile first (from database)
+    if (userProfile?.full_name) {
+      const firstName = userProfile.full_name.trim().split(' ')[0];
+      return firstName || 'Usuário';
+    }
+    
+    // Fallback to user object full_name
     if (user.full_name) {
       const firstName = user.full_name.trim().split(' ')[0];
       return firstName || 'Usuário';

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,25 +68,17 @@ const Booking = () => {
     try {
       const selectedServiceData = settings.services.find(s => s.id === selectedService);
       
-      const appointmentData: any = {
+      const appointmentData = {
         user_id: user?.id,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
         service: selectedServiceData?.name || 'Serviço não encontrado',
-        status: 'agendado'
+        status: 'agendado',
+        type: selectedService === "1" ? null : selectedType, // Set to null for Anamnese, otherwise use selectedType
+        notes: notes.trim() || null
       };
-
-      // Only add type if a service other than Anamnese is selected
-      if (selectedService !== "1" && selectedType) {
-        appointmentData.type = selectedType;
-      }
-
-      // Add notes if provided
-      if (notes.trim()) {
-        appointmentData.notes = notes.trim();
-      }
       
-      console.log('Tentando criar agendamento:', appointmentData);
+      console.log('Dados do agendamento:', appointmentData);
       
       const { data, error } = await supabase
         .from('appointments')
@@ -95,7 +86,7 @@ const Booking = () => {
         .select();
 
       if (error) {
-        console.error('Erro ao criar agendamento:', error);
+        console.error('Erro detalhado:', error);
         toast.error(`Erro ao realizar agendamento: ${error.message}`);
         return;
       }
@@ -109,7 +100,7 @@ const Booking = () => {
       }, 1500);
       
     } catch (error) {
-      console.error('Erro inesperado ao criar agendamento:', error);
+      console.error('Erro inesperado:', error);
       toast.error("Erro inesperado ao realizar agendamento. Tente novamente.");
     } finally {
       setIsLoading(false);

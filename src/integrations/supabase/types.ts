@@ -18,6 +18,7 @@ export type Database = {
           service: string
           status: string | null
           time: string
+          type: string | null
           updated_at: string
           user_id: string
         }
@@ -29,6 +30,7 @@ export type Database = {
           service: string
           status?: string | null
           time: string
+          type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -40,6 +42,7 @@ export type Database = {
           service?: string
           status?: string | null
           time?: string
+          type?: string | null
           updated_at?: string
           user_id?: string
         }
