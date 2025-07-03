@@ -1,55 +1,81 @@
 
 import { useState } from "react";
 
+interface Testimonial {
+  name: string;
+  rating: number;
+  comment: string;
+  image: string;
+}
+
+interface Feature {
+  title: string;
+  description: string;
+}
+
 interface HomeContent {
   hero: {
     title: string;
     subtitle: string;
-    description: string;
+    exclusiveMessage: string;
   };
-  features: Array<{
-    title: string;
-    description: string;
-  }>;
-  testimonials: {
-    title: string;
-    subtitle: string;
-  };
+  features: Feature[];
+  testimonials: Testimonial[];
   cta: {
     title: string;
-    description: string;
-    buttonText: string;
+    subtitle: string;
+    exclusiveNote: string;
   };
 }
 
 const defaultHomeContent: HomeContent = {
   hero: {
-    title: "Bem-vindo ao Consultório Dra. Daiane Silva",
-    subtitle: "Cuidando da sua saúde mental com carinho e profissionalismo",
-    description: "Atendimento psicológico especializado para mulheres e crianças neuroatípicas, oferecendo um ambiente acolhedor e profissional para seu bem-estar emocional."
+    title: "Transforme sua vida com a Terapia Cognitiva Comportamental",
+    subtitle: "Sou Daiane Motta, Terapeuta Cognitiva Comportamental especializada em ajudar mulheres e crianças a superar desafios emocionais e conquistar uma vida mais equilibrada.",
+    exclusiveMessage: "🌸 Atendimento exclusivo para mulheres e crianças 🌸"
   },
   features: [
     {
-      title: "Atendimento Personalizado",
-      description: "Cada paciente recebe um plano de tratamento único, adaptado às suas necessidades específicas."
+      title: "Terapia Cognitiva Comportamental",
+      description: "Abordagem cientificamente comprovada para diversos transtornos"
     },
     {
-      title: "Especialização em Neuroatípicos",
-      description: "Experiência especializada no atendimento de crianças e adultos neuroatípicos."
+      title: "Atendimento Especializado",
+      description: "Exclusivo para mulheres e crianças neuroatípicas"
     },
     {
-      title: "Ambiente Acolhedor",
-      description: "Espaço pensado para proporcionar conforto e segurança durante as sessões."
+      title: "Acolhimento Humanizado",
+      description: "Ambiente seguro e acolhedor para seu bem-estar"
+    },
+    {
+      title: "Sigilo Profissional",
+      description: "Total confidencialidade em todos os atendimentos"
     }
   ],
-  testimonials: {
-    title: "O que nossos pacientes dizem",
-    subtitle: "Depoimentos reais de quem já passou por aqui"
-  },
+  testimonials: [
+    {
+      name: "Maria Santos",
+      rating: 5,
+      comment: "A Daiane mudou minha vida! Através da TCC consegui superar minha ansiedade e hoje tenho uma qualidade de vida muito melhor.",
+      image: "/placeholder.svg"
+    },
+    {
+      name: "Ana Silva",
+      rating: 5,
+      comment: "Profissional excepcional! Seu conhecimento em TCC é impressionante e sempre me sinto acolhida nas sessões.",
+      image: "/placeholder.svg"
+    },
+    {
+      name: "Carla Costa",
+      rating: 5,
+      comment: "Recomendo a todas! Daiane tem uma abordagem muito humana e eficaz. Minha filha autista teve grandes progressos.",
+      image: "/placeholder.svg"
+    }
+  ],
   cta: {
-    title: "Pronto para começar sua jornada?",
-    description: "Agende sua consulta hoje mesmo e dê o primeiro passo para uma vida mais equilibrada.",
-    buttonText: "Agendar Consulta"
+    title: "Pronta para começar sua transformação?",
+    subtitle: "Agende sua consulta hoje e dê o primeiro passo rumo ao seu bem-estar",
+    exclusiveNote: "Atendimento exclusivo para mulheres e crianças"
   }
 };
 
