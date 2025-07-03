@@ -24,6 +24,18 @@ const Header = () => {
     setMobileMenuOpen(false);
   };
 
+  // Function to get the user's first name
+  const getUserFirstName = () => {
+    if (!user) return 'Usuário';
+    
+    if (user.full_name) {
+      const firstName = user.full_name.trim().split(' ')[0];
+      return firstName || 'Usuário';
+    }
+    
+    return 'Usuário';
+  };
+
   return (
     <header className="bg-white/95 backdrop-blur-sm border-b border-rose-nude-200 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -78,7 +90,7 @@ const Header = () => {
           {user ? (
             <div className="flex items-center space-x-3">
               <span className="text-sm text-rose-nude-700">
-                Olá, {user.full_name?.split(' ')[0] || 'Usuário'}
+                Olá, {getUserFirstName()}
               </span>
               <Button
                 variant="outline"
@@ -194,7 +206,7 @@ const Header = () => {
               {user ? (
                 <div className="space-y-3">
                   <p className="text-sm text-rose-nude-700">
-                    Olá, {user.full_name?.split(' ')[0] || 'Usuário'}
+                    Olá, {getUserFirstName()}
                   </p>
                   <Button
                     variant="outline"

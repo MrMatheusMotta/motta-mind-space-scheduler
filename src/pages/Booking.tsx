@@ -87,20 +87,30 @@ const Booking = () => {
         appointmentData.notes = notes.trim();
       }
       
-      const { error } = await supabase
+      console.log('Tentando criar agendamento:', appointmentData);
+      
+      const { data, error } = await supabase
         .from('appointments')
-        .insert(appointmentData);
+        .insert(appointmentData)
+        .select();
 
       if (error) {
         console.error('Erro ao criar agendamento:', error);
-        throw error;
+        toast.error(`Erro ao realizar agendamento: ${error.message}`);
+        return;
       }
 
+      console.log('Agendamento criado com sucesso:', data);
       toast.success("Agendamento realizado com sucesso!");
-      navigate("/dashboard");
+      
+      // Aguardar um momento antes de navegar
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+      
     } catch (error) {
-      console.error('Erro ao criar agendamento:', error);
-      toast.error("Erro ao realizar agendamento. Tente novamente.");
+      console.error('Erro inesperado ao criar agendamento:', error);
+      toast.error("Erro inesperado ao realizar agendamento. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -142,15 +152,7 @@ const Booking = () => {
                           {settings.services.map((service) => (
                             <SelectItem key={service.id} value={service.id}>
                               <div className="flex flex-col w-full">
-                                <div className="flex justify-between items-center w-full min-w-0">
-                                  <span className="font-medium truncate">{service.name}</span>
-                                  <span className="text-sm text-rose-nude-600 ml-4 flex-shrink-0">
-                                    R$ {service.price.toFixed(2)}
-                                    {service.priceOnline && service.priceOnline !== service.price && (
-                                      <span> / Online: R$ {service.priceOnline.toFixed(2)}</span>
-                                    )}
-                                  </span>
-                                </div>
+                                <span className="font-medium">{service.name}</span>
                                 <span className="text-sm text-rose-nude-600 text-left mt-1">{service.description}</span>
                               </div>
                             </SelectItem>
