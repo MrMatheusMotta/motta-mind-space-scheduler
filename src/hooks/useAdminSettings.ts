@@ -2,7 +2,6 @@
 import { useServicesSettings } from "./useServicesSettings";
 import { useClinicSettings } from "./useClinicSettings";
 import { usePaymentSettings } from "./usePaymentSettings";
-import { useHomeContent } from "./useHomeContent";
 
 export const useAdminSettings = () => {
   const { services, updateServices } = useServicesSettings();
@@ -29,6 +28,3 @@ export const useAdminSettings = () => {
     updatePayment
   };
 };
-
-// Re-export the useHomeContent hook for convenience
-export { useHomeContent } from "./useHomeContent";

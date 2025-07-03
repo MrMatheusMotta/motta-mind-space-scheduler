@@ -69,17 +69,27 @@ const Booking = () => {
     try {
       const selectedServiceData = settings.services.find(s => s.id === selectedService);
       
+      const appointmentData: any = {
+        user_id: user?.id,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        time: selectedTime,
+        service: selectedServiceData?.name || 'Serviço não encontrado',
+        status: 'agendado'
+      };
+
+      // Only add type if a service other than Anamnese is selected
+      if (selectedService !== "1" && selectedType) {
+        appointmentData.type = selectedType;
+      }
+
+      // Add notes if provided
+      if (notes.trim()) {
+        appointmentData.notes = notes.trim();
+      }
+      
       const { error } = await supabase
         .from('appointments')
-        .insert({
-          user_id: user?.id,
-          date: format(selectedDate, 'yyyy-MM-dd'),
-          time: selectedTime,
-          service: selectedServiceData?.name || 'Serviço não encontrado',
-          type: selectedType || 'presencial',
-          notes: notes || null,
-          status: 'agendado'
-        });
+        .insert(appointmentData);
 
       if (error) {
         console.error('Erro ao criar agendamento:', error);
@@ -107,7 +117,7 @@ const Booking = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold gradient-text mb-4">Agendar Consulta</h1>
             <p className="text-lg text-rose-nude-600">
-              Bem-vindo(a), {user.full_name?.split(' ')[0] || 'Usuário'}! Escolha o melhor horário para sua consulta.
+              Bem-vindo(a), {user.full_name || 'Usuário'}! Escolha o melhor horário para sua consulta.
             </p>
           </div>
 
@@ -131,17 +141,17 @@ const Booking = () => {
                         <SelectContent>
                           {settings.services.map((service) => (
                             <SelectItem key={service.id} value={service.id}>
-                              <div className="flex flex-col">
-                                <div className="flex justify-between items-center w-full">
-                                  <span className="font-medium">{service.name}</span>
-                                  <span className="text-sm text-rose-nude-600 ml-4">
+                              <div className="flex flex-col w-full">
+                                <div className="flex justify-between items-center w-full min-w-0">
+                                  <span className="font-medium truncate">{service.name}</span>
+                                  <span className="text-sm text-rose-nude-600 ml-4 flex-shrink-0">
                                     R$ {service.price.toFixed(2)}
                                     {service.priceOnline && service.priceOnline !== service.price && (
                                       <span> / Online: R$ {service.priceOnline.toFixed(2)}</span>
                                     )}
                                   </span>
                                 </div>
-                                <span className="text-sm text-rose-nude-600 text-left">{service.description}</span>
+                                <span className="text-sm text-rose-nude-600 text-left mt-1">{service.description}</span>
                               </div>
                             </SelectItem>
                           ))}
