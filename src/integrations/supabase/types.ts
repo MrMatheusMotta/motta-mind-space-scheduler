@@ -144,6 +144,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: boolean
       }
+      is_admin_by_email: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
