@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -78,6 +79,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Use setTimeout to avoid potential deadlocks
           setTimeout(async () => {
             try {
+              const isAdmin = session.user.email === 'psicologadaianesilva@outlook.com';
+              
+              // Try to get profile data
               const { data: profile, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -86,8 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
               console.log('Profile data:', profile, 'Error:', error);
 
-              const isAdmin = session.user.email === 'psicologadaianesilva@outlook.com';
-              
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
@@ -96,6 +98,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 cpf: profile?.cpf || session.user.user_metadata?.cpf || '',
                 role: isAdmin ? 'admin' : 'user'
               });
+              
+              // Create or update profile if it doesn't exist
+              if (!profile && !error) {
+                console.log('Creating profile for user...');
+                const { error: insertError } = await supabase
+                  .from('profiles')
+                  .insert({
+                    id: session.user.id,
+                    full_name: session.user.user_metadata?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
+                    phone: session.user.user_metadata?.phone || '',
+                    cpf: session.user.user_metadata?.cpf || ''
+                  });
+                
+                if (insertError) {
+                  console.error('Error creating profile:', insertError);
+                }
+              }
             } catch (error) {
               console.error('Erro ao buscar perfil:', error);
               const isAdmin = session.user.email === 'psicologadaianesilva@outlook.com';
