@@ -101,9 +101,25 @@ const Booking = () => {
       console.log('Agendamento criado com sucesso:', data);
       toast.success("Agendamento realizado com sucesso!");
       
-      // Aguardar um momento antes de navegar
+      // Criar dados do agendamento para a página de pagamento
+      const appointmentId = data[0]?.id;
+      const paymentData = {
+        appointmentId,
+        service: selectedServiceData?.name,
+        date: format(selectedDate, "PPP", { locale: ptBR }),
+        time: selectedTime,
+        type: selectedService !== "1" ? selectedType : null,
+        totalPrice: getCurrentPrice(),
+        advanceAmount: getAdvanceAmount(),
+        advancePercentage: settings.payment.advancePercentage
+      };
+      
+      // Salvar dados temporariamente no localStorage para a página de pagamento
+      localStorage.setItem('pendingPayment', JSON.stringify(paymentData));
+      
+      // Navegar para página de pagamento
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/payment");
       }, 1500);
       
     } catch (error) {

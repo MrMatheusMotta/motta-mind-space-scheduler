@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Booking from "./pages/Booking";
+import Payment from "./pages/Payment";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
 import Profile from "./pages/Profile";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/booking" element={<Booking />} />
+            <Route path="/payment" element={<Payment />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/profile" element={<Profile />} />
