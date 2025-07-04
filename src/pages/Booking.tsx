@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ const Booking = () => {
   const [selectedType, setSelectedType] = useState("");
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -55,6 +57,11 @@ const Booking = () => {
     return (totalPrice * settings.payment.advancePercentage) / 100;
   };
 
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    setCalendarOpen(false); // Close calendar automatically after selection
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -74,7 +81,7 @@ const Booking = () => {
         time: selectedTime,
         service: selectedServiceData?.name || 'Serviço não encontrado',
         status: 'agendado',
-        type: selectedService === "1" ? null : selectedType, // Set to null for Anamnese, otherwise use selectedType
+        type: selectedService === "1" ? null : selectedType,
         notes: notes.trim() || null
       };
       
@@ -109,6 +116,17 @@ const Booking = () => {
 
   if (!user) return null;
 
+  const getUserFirstName = () => {
+    if (!user) return 'Usuário';
+    
+    if (user.full_name) {
+      const firstName = user.full_name.trim().split(' ')[0];
+      return firstName || 'Usuário';
+    }
+    
+    return 'Usuário';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">
       <Header />
@@ -118,7 +136,7 @@ const Booking = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold gradient-text mb-4">Agendar Consulta</h1>
             <p className="text-lg text-rose-nude-600">
-              Bem-vindo(a), {user.full_name || 'Usuário'}! Escolha o melhor horário para sua consulta.
+              Bem-vindo(a), {getUserFirstName()}! Escolha o melhor horário para sua consulta.
             </p>
           </div>
 
@@ -193,7 +211,7 @@ const Booking = () => {
 
                     <div className="space-y-3">
                       <Label className="text-rose-nude-700 font-medium">Data da Consulta *</Label>
-                      <Popover>
+                      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -210,10 +228,11 @@ const Booking = () => {
                           <Calendar
                             mode="single"
                             selected={selectedDate}
-                            onSelect={setSelectedDate}
+                            onSelect={handleDateSelect}
                             disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
                             initialFocus
                             locale={ptBR}
+                            className="pointer-events-auto"
                           />
                         </PopoverContent>
                       </Popover>

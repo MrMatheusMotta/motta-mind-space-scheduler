@@ -76,22 +76,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(session);
         
         if (session?.user) {
+          // Use setTimeout to avoid potential deadlocks
           setTimeout(async () => {
             try {
-              const { data: profile } = await supabase
+              const { data: profile, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
-                .single();
+                .maybeSingle();
+
+              console.log('Profile data:', profile, 'Error:', error);
 
               const isAdmin = session.user.email === 'psicologadaianesilva@outlook.com';
               
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
-                full_name: profile?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
-                phone: profile?.phone || '',
-                cpf: profile?.cpf || '',
+                full_name: profile?.full_name || session.user.user_metadata?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
+                phone: profile?.phone || session.user.user_metadata?.phone || '',
+                cpf: profile?.cpf || session.user.user_metadata?.cpf || '',
                 role: isAdmin ? 'admin' : 'user'
               });
             } catch (error) {
@@ -100,7 +103,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
-                full_name: isAdmin ? 'Dra. Daiane Silva' : '',
+                full_name: session.user.user_metadata?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
+                phone: session.user.user_metadata?.phone || '',
+                cpf: session.user.user_metadata?.cpf || '',
                 role: isAdmin ? 'admin' : 'user'
               });
             }
