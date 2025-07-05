@@ -87,6 +87,26 @@ const Booking = () => {
       
       console.log('Dados do agendamento:', appointmentData);
       
+      // Verificar se já existe agendamento na mesma data e horário
+      const { data: existingAppointments, error: checkError } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('date', appointmentData.date)
+        .eq('time', appointmentData.time)
+        .in('status', ['agendado', 'confirmado']);
+
+      if (checkError) {
+        console.error('Erro ao verificar agendamentos:', checkError);
+        toast.error('Erro ao verificar disponibilidade');
+        return;
+      }
+
+      if (existingAppointments && existingAppointments.length > 0) {
+        toast.error('Você já possui um agendamento para este dia e horário. Escolha outro horário.');
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('appointments')
         .insert(appointmentData)
