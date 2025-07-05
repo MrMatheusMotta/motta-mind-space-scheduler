@@ -47,9 +47,9 @@ const Payment = () => {
     // Limpar dados temporários
     localStorage.removeItem('pendingPayment');
     
-    // Navegar para dashboard após sucesso
+    // Navegar para home após sucesso
     setTimeout(() => {
-      navigate("/dashboard");
+      navigate("/");
     }, 2000);
   };
 

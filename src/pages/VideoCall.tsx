@@ -20,6 +20,7 @@ const VideoCall = () => {
   const [callDuration, setCallDuration] = useState(0);
   const [sessionDuration] = useState(50); // Duration from admin settings
   const [showWarning, setShowWarning] = useState(false);
+  const [isExtendedByAdmin, setIsExtendedByAdmin] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -36,22 +37,32 @@ const VideoCall = () => {
           const newDuration = prev + 1;
           const remainingMinutes = Math.floor((sessionDuration * 60 - newDuration) / 60);
           
-          // Show warning in last 5 minutes
-          if (remainingMinutes <= 5 && remainingMinutes > 0 && !showWarning) {
+          // First warning at 15 minutes
+          if (remainingMinutes === 15 && !showWarning) {
             setShowWarning(true);
-            toast.warning(`Atenção: Restam ${remainingMinutes} minutos para o fim da sessão`, {
+            toast.warning("Atenção: Restam 15 minutos para o fim da sessão", {
               duration: 5000
             });
           }
           
-          // Show minute-by-minute warnings in last 5 minutes
+          // Warnings every 5 minutes from 15 to 10 minutes
+          if (remainingMinutes <= 15 && remainingMinutes > 5) {
+            const remainingSeconds = (sessionDuration * 60 - newDuration) % 60;
+            if (remainingSeconds === 0 && remainingMinutes % 5 === 0) {
+              toast.warning(`Restam ${remainingMinutes} minutos para o fim da sessão`, {
+                duration: 4000
+              });
+            }
+          }
+          
+          // Minute-by-minute warnings in last 5 minutes
           if (remainingMinutes <= 5 && remainingMinutes > 0) {
             const remainingSeconds = (sessionDuration * 60 - newDuration) % 60;
             if (remainingSeconds === 0) {
               if (remainingMinutes === 1) {
                 toast.error("Último minuto da sessão!", { duration: 3000 });
               } else {
-                toast.warning(`${remainingMinutes} minutos restantes`, { duration: 3000 });
+                toast.error(`${remainingMinutes} minutos restantes!`, { duration: 3000 });
               }
             }
           }
@@ -90,8 +101,15 @@ const VideoCall = () => {
     setIsCallActive(false);
     setCallDuration(0);
     setShowWarning(false);
+    setIsExtendedByAdmin(false);
     toast.info("Chamada encerrada");
-    navigate("/dashboard");
+    navigate("/");
+  };
+
+  const handleExtendSession = () => {
+    // Função apenas para admin - estender sessão em mais 15 minutos
+    setIsExtendedByAdmin(true);
+    toast.success("Sessão estendida em 15 minutos");
   };
 
   if (!user) return null;
@@ -196,6 +214,18 @@ const VideoCall = () => {
                         >
                           <Phone className="w-6 h-6" />
                         </Button>
+                        
+                        {/* Botão de extensão apenas para admin */}
+                        {user?.email === 'psicologadaianesilva@outlook.com' && isCallActive && (
+                          <Button
+                            size="lg"
+                            variant="outline"
+                            onClick={handleExtendSession}
+                            className="rounded-full px-4 py-2 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                          >
+                            +15 min
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
