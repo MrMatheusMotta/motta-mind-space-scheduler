@@ -69,6 +69,9 @@ const Header = () => {
               <Link to="/booking" className="text-rose-nude-700 hover:text-rose-nude-900 transition-colors">
                 Agendar
               </Link>
+              <Link to="/my-appointments" className="text-rose-nude-700 hover:text-rose-nude-900 transition-colors">
+                Meus Agendamentos
+              </Link>
               <Link to="/videocall" className="text-rose-nude-700 hover:text-rose-nude-900 transition-colors">
                 Videochamada
               </Link>
@@ -167,6 +170,13 @@ const Header = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Agendar
+                </Link>
+                <Link 
+                  to="/my-appointments" 
+                  className="block text-rose-nude-700 hover:text-rose-nude-900 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Meus Agendamentos
                 </Link>
                 <Link 
                   to="/videocall" 

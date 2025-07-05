@@ -3,13 +3,65 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
-import { Clock, MapPin, Phone, Mail, Star, Heart, Brain, Users, CheckCircle, Shield, Calendar } from "lucide-react";
+import { Clock, MapPin, Phone, Mail, Star, Heart, Brain, Users, CheckCircle, Shield, Calendar, CalendarCheck, Video } from "lucide-react";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 import { useHomeContent } from "@/hooks/useHomeContent";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { settings } = useAdminSettings();
   const { homeContent } = useHomeContent();
+  const { user } = useAuth();
+  const [userAppointments, setUserAppointments] = useState([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserAppointments();
+    }
+  }, [user]);
+
+  const fetchUserAppointments = async () => {
+    try {
+      setLoadingAppointments(true);
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('user_id', user?.id)
+        .gte('date', new Date().toISOString().split('T')[0])
+        .order('date', { ascending: true })
+        .order('time', { ascending: true })
+        .limit(3);
+
+      if (!error && data) {
+        setUserAppointments(data);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    } finally {
+      setLoadingAppointments(false);
+    }
+  };
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
+
+  const formatTime = (timeStr) => {
+    return timeStr.slice(0, 5);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'agendado': return 'bg-blue-100 text-blue-800';
+      case 'confirmado': return 'bg-green-100 text-green-800';
+      case 'realizado': return 'bg-gray-100 text-gray-800';
+      case 'cancelado': return 'bg-red-100 text-red-800';
+      default: return 'bg-blue-100 text-blue-800';
+    }
+  };
 
   const iconMap = {
     "Terapia Cognitiva Comportamental": Brain,
@@ -93,6 +145,139 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* User Appointments Section - Only visible when logged in */}
+      {user && (
+        <section className="py-12 md:py-16 bg-gradient-to-r from-rose-nude-100 to-rose-nude-200">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">
+                  Olá, {user.full_name?.split(' ')[0] || 'Usuário'}! 👋
+                </h2>
+                <p className="text-lg text-rose-nude-600">Suas próximas consultas</p>
+              </div>
+              
+              {loadingAppointments ? (
+                <div className="text-center py-8">
+                  <p className="text-rose-nude-600">Carregando seus agendamentos...</p>
+                </div>
+              ) : userAppointments.length > 0 ? (
+                <>
+                  <div className="grid md:grid-cols-3 gap-6 mb-6">
+                    {userAppointments.map((appointment) => (
+                      <Card key={appointment.id} className="border-rose-nude-300 bg-white hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-lg font-semibold text-rose-nude-800">
+                                {appointment.service}
+                              </h3>
+                              <Badge className={getStatusColor(appointment.status)}>
+                                {appointment.status || 'agendado'}
+                              </Badge>
+                            </div>
+                            
+                            <div className="space-y-2 text-sm text-rose-nude-600">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                {formatDate(appointment.date)}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                {formatTime(appointment.time)}
+                              </div>
+                              {appointment.type && (
+                                <div className="flex items-center gap-2">
+                                  {appointment.type === 'online' ? (
+                                    <Video className="w-4 h-4" />
+                                  ) : (
+                                    <MapPin className="w-4 h-4" />
+                                  )}
+                                  {appointment.type === 'online' ? 'Online' : 'Presencial'}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {appointment.type === 'online' && appointment.status === 'confirmado' && (
+                              <Button asChild size="sm" className="w-full bg-green-600 hover:bg-green-700 mt-3">
+                                <Link to="/videocall">
+                                  <Video className="w-4 h-4 mr-2" />
+                                  Entrar na Consulta
+                                </Link>
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  
+                  <div className="text-center">
+                    <Button asChild variant="outline" className="border-rose-nude-400 text-rose-nude-700 hover:bg-rose-nude-50">
+                      <Link to="/my-appointments">
+                        <CalendarCheck className="w-4 h-4 mr-2" />
+                        Ver Todos os Agendamentos
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <Card className="border-rose-nude-300 bg-white">
+                  <CardContent className="py-12 text-center">
+                    <Calendar className="w-16 h-16 mx-auto text-rose-nude-400 mb-4" />
+                    <h3 className="text-xl font-semibold text-rose-nude-800 mb-2">
+                      Você ainda não tem consultas agendadas
+                    </h3>
+                    <p className="text-rose-nude-600 mb-6">
+                      Que tal agendar sua primeira consulta comigo?
+                    </p>
+                    <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600">
+                      <Link to="/booking">
+                        <Calendar className="w-5 h-5 mr-2" />
+                        Agendar Primeira Consulta
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Quick Actions for Logged Users */}
+              <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card className="border-rose-nude-300 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                  <Link to="/booking">
+                    <CardContent className="p-6 text-center">
+                      <Calendar className="w-8 h-8 mx-auto text-rose-nude-500 mb-3" />
+                      <h4 className="font-semibold text-rose-nude-800 mb-1">Nova Consulta</h4>
+                      <p className="text-sm text-rose-nude-600">Agendar nova sessão</p>
+                    </CardContent>
+                  </Link>
+                </Card>
+                
+                <Card className="border-rose-nude-300 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                  <Link to="/my-appointments">
+                    <CardContent className="p-6 text-center">
+                      <CalendarCheck className="w-8 h-8 mx-auto text-rose-nude-500 mb-3" />
+                      <h4 className="font-semibold text-rose-nude-800 mb-1">Meus Agendamentos</h4>
+                      <p className="text-sm text-rose-nude-600">Ver histórico completo</p>
+                    </CardContent>
+                  </Link>
+                </Card>
+                
+                <Card className="border-rose-nude-300 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                  <Link to="/profile">
+                    <CardContent className="p-6 text-center">
+                      <Users className="w-8 h-8 mx-auto text-rose-nude-500 mb-3" />
+                      <h4 className="font-semibold text-rose-nude-800 mb-1">Meu Perfil</h4>
+                      <p className="text-sm text-rose-nude-600">Atualizar informações</p>
+                    </CardContent>
+                  </Link>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Services Section */}
       <section className="py-12 md:py-16">
