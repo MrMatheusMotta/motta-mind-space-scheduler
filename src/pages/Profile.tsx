@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import TestimonialForm from "@/components/TestimonialForm";
-import { User, Settings, MessageSquare } from "lucide-react";
+import { User, Settings, MessageSquare, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -27,7 +27,9 @@ const Profile = () => {
     email: user.email || "",
     phone: user.phone || "",
     cpf: user.cpf || "",
+    avatar_url: user.avatar_url || "",
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     setProfileData({
@@ -35,8 +37,53 @@ const Profile = () => {
       email: user.email || "",
       phone: user.phone || "",
       cpf: user.cpf || "",
+      avatar_url: user.avatar_url || "",
     });
   }, [user]);
+
+  const uploadAvatar = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast.error("Erro ao fazer upload da imagem");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const avatarUrl = await uploadAvatar(file);
+    if (avatarUrl) {
+      setProfileData(prev => ({ ...prev, avatar_url: avatarUrl }));
+      toast.success("Foto de perfil enviada com sucesso!");
+    }
+  };
+
+  const removeAvatar = () => {
+    setProfileData(prev => ({ ...prev, avatar_url: "" }));
+  };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +95,7 @@ const Profile = () => {
           full_name: profileData.full_name,
           phone: profileData.phone,
           cpf: profileData.cpf,
+          avatar_url: profileData.avatar_url,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -102,6 +150,50 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleProfileUpdate} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="avatar">Foto de Perfil</Label>
+                      <div className="flex flex-col gap-3 items-center">
+                        {profileData.avatar_url && (
+                          <div className="relative w-24 h-24">
+                            <img 
+                              src={profileData.avatar_url} 
+                              alt="Foto de perfil"
+                              className="w-full h-full rounded-full object-cover border-4 border-rose-nude-200"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
+                              onClick={removeAvatar}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 w-full">
+                          <Input
+                            id="avatar"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                            disabled={uploading}
+                            className="border-rose-nude-200"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={uploading}
+                            onClick={() => document.getElementById('avatar')?.click()}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploading ? "Enviando..." : "Upload"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="full_name" className="text-rose-nude-700">Nome Completo</Label>
                       <Input

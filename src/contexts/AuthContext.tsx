@@ -9,6 +9,7 @@ interface AuthUser {
   full_name?: string;
   phone?: string;
   cpf?: string;
+  avatar_url?: string;
   role: 'user' | 'admin';
 }
 
@@ -96,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 full_name: profile?.full_name || session.user.user_metadata?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
                 phone: profile?.phone || session.user.user_metadata?.phone || '',
                 cpf: profile?.cpf || session.user.user_metadata?.cpf || '',
+                avatar_url: profile?.avatar_url || '',
                 role: isAdmin ? 'admin' : 'user'
               });
               
@@ -124,6 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 full_name: session.user.user_metadata?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
                 phone: session.user.user_metadata?.phone || '',
                 cpf: session.user.user_metadata?.cpf || '',
+                avatar_url: '',
                 role: isAdmin ? 'admin' : 'user'
               });
             }

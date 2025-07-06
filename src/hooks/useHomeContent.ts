@@ -18,6 +18,7 @@ interface HomeContent {
     title: string;
     subtitle: string;
     exclusiveMessage: string;
+    profileImage?: string;
   };
   features: Feature[];
   testimonials: Testimonial[];
@@ -32,7 +33,8 @@ const defaultHomeContent: HomeContent = {
   hero: {
     title: "Transforme sua vida com a Terapia Cognitiva Comportamental",
     subtitle: "Sou Daiane Motta, Terapeuta Cognitiva Comportamental especializada em ajudar mulheres e crianças a superar desafios emocionais e conquistar uma vida mais equilibrada.",
-    exclusiveMessage: "🌸 Atendimento exclusivo para mulheres e crianças 🌸"
+    exclusiveMessage: "🌸 Atendimento exclusivo para mulheres e crianças 🌸",
+    profileImage: undefined
   },
   features: [
     {

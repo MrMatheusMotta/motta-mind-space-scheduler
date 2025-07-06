@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Save, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Testimonial {
   name: string;
@@ -26,6 +27,7 @@ interface HomeContent {
     title: string;
     subtitle: string;
     exclusiveMessage: string;
+    profileImage?: string;
   };
   features: Feature[];
   testimonials: Testimonial[];
@@ -45,7 +47,8 @@ const HomeContentManager = () => {
       hero: {
         title: "Transforme sua vida com a Terapia Cognitiva Comportamental",
         subtitle: "Sou Daiane Motta, Terapeuta Cognitiva Comportamental especializada em ajudar mulheres e crianças a superar desafios emocionais e conquistar uma vida mais equilibrada.",
-        exclusiveMessage: "🌸 Atendimento exclusivo para mulheres e crianças 🌸"
+        exclusiveMessage: "🌸 Atendimento exclusivo para mulheres e crianças 🌸",
+        profileImage: undefined
       },
       features: [
         {
@@ -95,6 +98,57 @@ const HomeContentManager = () => {
 
   const [editingTestimonial, setEditingTestimonial] = useState<number | null>(null);
   const [editingFeature, setEditingFeature] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `profile/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error("Erro ao fazer upload da imagem");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const imageUrl = await uploadImage(file);
+    if (imageUrl) {
+      setHomeContent(prev => ({
+        ...prev,
+        hero: { ...prev.hero, profileImage: imageUrl }
+      }));
+      toast.success("Imagem enviada com sucesso!");
+    }
+  };
+
+  const removeImage = () => {
+    setHomeContent(prev => ({
+      ...prev,
+      hero: { ...prev.hero, profileImage: undefined }
+    }));
+  };
 
   const saveContent = () => {
     localStorage.setItem('homeContent', JSON.stringify(homeContent));
@@ -209,6 +263,49 @@ const HomeContentManager = () => {
               value={homeContent.hero.exclusiveMessage}
               onChange={(e) => updateHero("exclusiveMessage", e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="profileImage">Foto de Perfil da Dr. Daiane</Label>
+            <div className="flex flex-col gap-3">
+              {homeContent.hero.profileImage && (
+                <div className="relative w-32 h-32 mx-auto">
+                  <img 
+                    src={homeContent.hero.profileImage} 
+                    alt="Foto de perfil"
+                    className="w-full h-full rounded-full object-cover border-4 border-rose-nude-200"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
+                    onClick={removeImage}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Input
+                  id="profileImage"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  className="border-rose-nude-200"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => document.getElementById('profileImage')?.click()}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploading ? "Enviando..." : "Upload"}
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -16,12 +16,41 @@ const Index = () => {
   const { user } = useAuth();
   const [userAppointments, setUserAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [realTestimonials, setRealTestimonials] = useState([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchUserAppointments();
     }
+    fetchApprovedTestimonials();
   }, [user]);
+
+  const fetchApprovedTestimonials = async () => {
+    try {
+      setLoadingTestimonials(true);
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select(`
+          *,
+          profiles (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (!error && data) {
+        setRealTestimonials(data);
+      }
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+    } finally {
+      setLoadingTestimonials(false);
+    }
+  };
 
   const fetchUserAppointments = async () => {
     try {
@@ -78,36 +107,47 @@ const Index = () => {
       <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
-              <div className="text-center lg:text-left space-y-6">
+            <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-stretch">
+              <div className="text-center lg:text-left space-y-6 flex flex-col justify-center">
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-text leading-tight">
                   {homeContent.hero.title}
                 </h1>
                 <p className="text-lg md:text-xl text-rose-nude-600 leading-relaxed">
                   {homeContent.hero.subtitle}
                 </p>
-                <div className="p-4 bg-rose-nude-100 rounded-lg border border-rose-nude-200 mb-6">
+                <div className="p-6 bg-rose-nude-100 rounded-lg border border-rose-nude-200 mb-6">
                   <p className="text-rose-nude-800 font-semibold text-center">
                     {homeContent.hero.exclusiveMessage}
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white">
+                  <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white py-3 px-6">
                     <Link to="/booking">
                       <Calendar className="w-5 h-5 mr-2" />
                       Agendar Consulta
                     </Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50">
+                  <Button asChild variant="outline" size="lg" className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50 py-3 px-6">
                     <Link to="/about">Conheça Meu Trabalho</Link>
                   </Button>
                 </div>
               </div>
               
-              <div className="relative">
-                <div className="bg-gradient-to-br from-rose-nude-200 to-rose-nude-300 rounded-2xl p-6 md:p-8 text-center shadow-xl">
-                  <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-rose-nude-400 to-rose-nude-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                    <span className="text-white font-bold text-4xl md:text-6xl">DM</span>
+              <div className="relative flex items-center justify-center">
+                <div className="bg-gradient-to-br from-rose-nude-200 to-rose-nude-300 rounded-2xl p-6 md:p-8 text-center shadow-xl w-full max-w-sm mx-auto">
+                  <div 
+                    className="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 flex items-center justify-center overflow-hidden"
+                    style={{
+                      backgroundImage: homeContent.hero.profileImage 
+                        ? `url(${homeContent.hero.profileImage})` 
+                        : 'linear-gradient(135deg, hsl(var(--rose-nude-400)), hsl(var(--rose-nude-600)))',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
+                  >
+                    {!homeContent.hero.profileImage && (
+                      <span className="text-white font-bold text-4xl md:text-6xl">DM</span>
+                    )}
                   </div>
                   <h3 className="text-xl md:text-2xl font-bold text-rose-nude-800 mb-2">Daiane Motta</h3>
                   <p className="text-rose-nude-700 mb-4">Terapeuta Cognitiva Comportamental</p>
@@ -343,28 +383,59 @@ const Index = () => {
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">
-              {homeContent.testimonials.map((testimonial, index) => (
-                <Card key={index} className="border-rose-nude-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
-                      <img 
-                        src={testimonial.image} 
-                        alt={testimonial.name}
-                        className="w-12 h-12 rounded-full mr-4"
-                      />
-                      <div>
-                        <h4 className="font-semibold text-rose-nude-800">{testimonial.name}</h4>
-                        <div className="flex">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 fill-rose-nude-400 text-rose-nude-400" />
-                          ))}
+              {/* Mostra depoimentos reais primeiro, depois os estáticos se necessário */}
+              {realTestimonials.length > 0 ? (
+                realTestimonials.slice(0, 3).map((testimonial, index) => (
+                  <Card key={testimonial.id} className="border-rose-nude-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center mb-4">
+                        <img 
+                          src={testimonial.profiles?.avatar_url || "/placeholder.svg"} 
+                          alt={testimonial.profiles?.full_name || testimonial.name}
+                          className="w-12 h-12 rounded-full mr-4 object-cover border-2 border-rose-nude-200"
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder.svg";
+                          }}
+                        />
+                        <div>
+                          <h4 className="font-semibold text-rose-nude-800">
+                            {testimonial.profiles?.full_name || testimonial.name}
+                          </h4>
+                          <div className="flex">
+                            {[...Array(testimonial.rating || 5)].map((_, i) => (
+                              <Star key={i} className="w-4 h-4 fill-rose-nude-400 text-rose-nude-400" />
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <p className="text-rose-nude-700 text-sm italic">"{testimonial.comment}"</p>
-                  </CardContent>
-                </Card>
-              ))}
+                      <p className="text-rose-nude-700 text-sm italic">"{testimonial.content}"</p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                homeContent.testimonials.map((testimonial, index) => (
+                  <Card key={index} className="border-rose-nude-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center mb-4">
+                        <img 
+                          src={testimonial.image} 
+                          alt={testimonial.name}
+                          className="w-12 h-12 rounded-full mr-4 object-cover border-2 border-rose-nude-200"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-rose-nude-800">{testimonial.name}</h4>
+                          <div className="flex">
+                            {[...Array(testimonial.rating)].map((_, i) => (
+                              <Star key={i} className="w-4 h-4 fill-rose-nude-400 text-rose-nude-400" />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-rose-nude-700 text-sm italic">"{testimonial.comment}"</p>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </div>
