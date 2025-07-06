@@ -126,11 +126,12 @@ const MessagesManager = () => {
         <p className="text-rose-nude-600">Visualize e responda mensagens dos pacientes.</p>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4 overflow-x-auto">
         <Button
           variant={filterStatus === "all" ? "default" : "outline"}
           onClick={() => setFilterStatus("all")}
           size="sm"
+          className="whitespace-nowrap"
         >
           Todas
         </Button>
@@ -138,6 +139,7 @@ const MessagesManager = () => {
           variant={filterStatus === "new" ? "default" : "outline"}
           onClick={() => setFilterStatus("new")}
           size="sm"
+          className="whitespace-nowrap"
         >
           Novas
         </Button>
@@ -145,6 +147,7 @@ const MessagesManager = () => {
           variant={filterStatus === "read" ? "default" : "outline"}
           onClick={() => setFilterStatus("read")}
           size="sm"
+          className="whitespace-nowrap"
         >
           Lidas
         </Button>
@@ -152,6 +155,7 @@ const MessagesManager = () => {
           variant={filterStatus === "replied" ? "default" : "outline"}
           onClick={() => setFilterStatus("replied")}
           size="sm"
+          className="whitespace-nowrap"
         >
           Respondidas
         </Button>
@@ -174,12 +178,12 @@ const MessagesManager = () => {
               }}
             >
               <CardContent className="pt-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
+                  <div className="flex-1">
                     <h4 className="font-medium text-rose-nude-800">{message.name}</h4>
                     <p className="text-sm text-rose-nude-600">{message.email}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <Badge className={getStatusColor(message.status)}>
                       {getStatusText(message.status)}
                     </Badge>
@@ -199,18 +203,18 @@ const MessagesManager = () => {
           {selectedMessage ? (
             <Card className="border-rose-nude-200">
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                  <div className="flex-1">
                     <CardTitle className="flex items-center gap-2">
                       <MessageSquare className="h-5 w-5" />
                       {selectedMessage.subject}
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="break-words">
                       De: {selectedMessage.name} ({selectedMessage.email})
                       {selectedMessage.phone && ` - ${selectedMessage.phone}`}
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0">
                     <Button
                       variant="outline"
                       size="sm"

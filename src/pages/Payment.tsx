@@ -180,15 +180,22 @@ const Payment = () => {
                       {payment.pixKey}
                     </p>
                     {payment.qrCodeImage && (
-                      <div className="mt-4">
+                      <div className="mt-4 text-center">
                         <p className="text-sm text-rose-nude-600 mb-2">QR Code:</p>
-                        <img 
-                          src={payment.qrCodeImage} 
-                          alt="QR Code PIX" 
-                          className="w-32 h-32 border border-rose-nude-200 rounded"
-                        />
+                        <div className="flex justify-center">
+                          <img 
+                            src={payment.qrCodeImage} 
+                            alt="QR Code PIX" 
+                            className="w-32 h-32 border border-rose-nude-200 rounded"
+                          />
+                        </div>
                       </div>
                     )}
+                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-800">
+                        ⚠️ <strong>Importante:</strong> Após realizar o pagamento, envie o comprovante com seu nome completo para o WhatsApp da Dr. Daiane Motta para confirmar o agendamento.
+                      </p>
+                    </div>
                   </div>
                 )}
 

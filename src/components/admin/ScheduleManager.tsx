@@ -171,15 +171,15 @@ const ScheduleManager = () => {
             
             {daySchedule.enabled && (
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                   {daySchedule.slots.map((slot) => (
-                    <div key={slot.id} className="flex items-center justify-between p-2 border rounded-lg">
-                      <div className="flex items-center gap-2">
+                    <div key={slot.id} className="flex items-center justify-between p-2 border rounded-lg min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <Switch
                           checked={slot.enabled}
                           onCheckedChange={() => toggleSlot(dayIndex, slot.id)}
                         />
-                        <span className={`text-sm ${slot.enabled ? 'text-rose-nude-800' : 'text-gray-400'}`}>
+                        <span className={`text-sm truncate ${slot.enabled ? 'text-rose-nude-800' : 'text-gray-400'}`}>
                           {slot.time}
                         </span>
                       </div>
@@ -187,7 +187,7 @@ const ScheduleManager = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeTimeSlot(dayIndex, slot.id)}
-                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700 shrink-0"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -195,19 +195,20 @@ const ScheduleManager = () => {
                   ))}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     type="time"
                     value={newTimeSlot}
                     onChange={(e) => setNewTimeSlot(e.target.value)}
-                    className="w-32"
+                    className="w-full sm:w-32"
                   />
                   <Button
                     onClick={() => addTimeSlot(dayIndex)}
                     variant="outline"
                     size="sm"
+                    className="whitespace-nowrap"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 mr-2" />
                     Adicionar
                   </Button>
                 </div>

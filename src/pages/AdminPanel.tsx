@@ -11,6 +11,7 @@ import PaymentSettings from "@/components/admin/PaymentSettings";
 import MessagesManager from "@/components/admin/MessagesManager";
 import HomeContentManager from "@/components/admin/HomeContentManager";
 import AboutContentManager from "@/components/admin/AboutContentManager";
+import AppointmentsManager from "@/components/admin/AppointmentsManager";
 
 const AdminPanel = () => {
   return (
@@ -28,16 +29,17 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="home" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 bg-rose-nude-100">
-            <TabsTrigger value="home" className="text-xs sm:text-sm">Página Inicial</TabsTrigger>
-            <TabsTrigger value="about" className="text-xs sm:text-sm">Sobre Mim</TabsTrigger>
-            <TabsTrigger value="services" className="text-xs sm:text-sm">Serviços</TabsTrigger>
-            <TabsTrigger value="clinic" className="text-xs sm:text-sm">Clínica</TabsTrigger>
-            <TabsTrigger value="schedule" className="text-xs sm:text-sm">Horários</TabsTrigger>
-            <TabsTrigger value="availability" className="text-xs sm:text-sm">Disponibilidade</TabsTrigger>
-            <TabsTrigger value="payment" className="text-xs sm:text-sm">Pagamento</TabsTrigger>
-            <TabsTrigger value="messages" className="text-xs sm:text-sm">Mensagens</TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs sm:text-sm">Configurações</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-10 bg-rose-nude-100 overflow-x-auto">
+            <TabsTrigger value="home" className="text-xs sm:text-sm whitespace-nowrap">Página Inicial</TabsTrigger>
+            <TabsTrigger value="about" className="text-xs sm:text-sm whitespace-nowrap">Sobre Mim</TabsTrigger>
+            <TabsTrigger value="appointments" className="text-xs sm:text-sm whitespace-nowrap">Agendamentos</TabsTrigger>
+            <TabsTrigger value="services" className="text-xs sm:text-sm whitespace-nowrap">Serviços</TabsTrigger>
+            <TabsTrigger value="clinic" className="text-xs sm:text-sm whitespace-nowrap">Clínica</TabsTrigger>
+            <TabsTrigger value="schedule" className="text-xs sm:text-sm whitespace-nowrap">Horários</TabsTrigger>
+            <TabsTrigger value="availability" className="text-xs sm:text-sm whitespace-nowrap">Disponibilidade</TabsTrigger>
+            <TabsTrigger value="payment" className="text-xs sm:text-sm whitespace-nowrap">Pagamento</TabsTrigger>
+            <TabsTrigger value="messages" className="text-xs sm:text-sm whitespace-nowrap">Mensagens</TabsTrigger>
+            <TabsTrigger value="settings" className="text-xs sm:text-sm whitespace-nowrap">Configurações</TabsTrigger>
           </TabsList>
 
           <TabsContent value="home" className="space-y-6">
@@ -46,6 +48,10 @@ const AdminPanel = () => {
 
           <TabsContent value="about" className="space-y-6">
             <AboutContentManager />
+          </TabsContent>
+
+          <TabsContent value="appointments" className="space-y-6">
+            <AppointmentsManager />
           </TabsContent>
 
           <TabsContent value="services" className="space-y-6">
