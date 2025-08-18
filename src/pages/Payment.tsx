@@ -7,6 +7,7 @@ import { CheckCircle, CreditCard, QrCode, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { usePaymentSettings } from "@/hooks/usePaymentSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentData {
   appointmentId: string;
@@ -35,22 +36,41 @@ const Payment = () => {
     }
   }, [navigate]);
 
-  const handlePaymentConfirmation = () => {
+  const handlePaymentConfirmation = async () => {
     if (!selectedPaymentMethod) {
       toast.error("Selecione uma forma de pagamento");
       return;
     }
 
-    // Simular processamento do pagamento
-    toast.success("Pagamento confirmado com sucesso!");
-    
-    // Limpar dados temporários
-    localStorage.removeItem('pendingPayment');
-    
-    // Navegar para home após sucesso
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
+    try {
+      // Atualizar status do agendamento para 'confirmado'
+      if (paymentData?.appointmentId) {
+        const { error } = await supabase
+          .from('appointments')
+          .update({ status: 'confirmado' })
+          .eq('id', paymentData.appointmentId);
+
+        if (error) {
+          console.error('Erro ao atualizar status:', error);
+          toast.error("Erro ao confirmar pagamento");
+          return;
+        }
+      }
+
+      // Simular processamento do pagamento
+      toast.success("Pagamento confirmado com sucesso!");
+      
+      // Limpar dados temporários
+      localStorage.removeItem('pendingPayment');
+      
+      // Navegar para meus agendamentos após sucesso
+      setTimeout(() => {
+        navigate("/my-appointments");
+      }, 2000);
+    } catch (error) {
+      console.error('Erro:', error);
+      toast.error("Erro inesperado ao processar pagamento");
+    }
   };
 
   const handleBackToBooking = () => {

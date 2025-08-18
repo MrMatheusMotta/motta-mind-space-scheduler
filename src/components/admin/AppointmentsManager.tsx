@@ -7,6 +7,7 @@ import { Calendar, Clock, Video, MapPin, User, Phone, Mail, CheckCircle, X, Edit
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import CreateAppointmentModal from "./CreateAppointmentModal";
 
 interface Appointment {
   id: string;
@@ -37,10 +38,11 @@ const AppointmentsManager = () => {
     try {
       setLoading(true);
       
-      // Primeiro buscar todos os agendamentos
+      // Primeiro buscar todos os agendamentos dos clientes (não do admin)
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select('*')
+        .neq('user_id', (await supabase.auth.getUser()).data.user?.id) // Excluir agendamentos do próprio admin
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
@@ -151,13 +153,17 @@ const AppointmentsManager = () => {
           </SelectContent>
         </Select>
         
-        <Button 
-          onClick={fetchAppointments}
-          variant="outline"
-          className="w-full sm:w-auto"
-        >
-          Atualizar Lista
-        </Button>
+        <div className="flex gap-2">
+          <CreateAppointmentModal onAppointmentCreated={fetchAppointments} />
+          
+          <Button 
+            onClick={fetchAppointments}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            Atualizar Lista
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4">
