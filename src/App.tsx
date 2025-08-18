@@ -17,6 +17,7 @@ import About from "./pages/About";
 import VideoCall from "./pages/VideoCall";
 import MyAppointments from "./pages/MyAppointments";
 import NotFound from "./pages/NotFound";
+import DebugAuth from "./components/DebugAuth";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/my-appointments" element={<MyAppointments />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <DebugAuth />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

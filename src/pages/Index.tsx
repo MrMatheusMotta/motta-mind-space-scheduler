@@ -108,36 +108,35 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-stretch">
-              <div className="text-center lg:text-left space-y-6">
+              <div className="text-center lg:text-left space-y-6 flex flex-col justify-center">
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-text leading-tight">
                   {homeContent.hero.title}
                 </h1>
                 <p className="text-lg md:text-xl text-rose-nude-600 leading-relaxed">
                   {homeContent.hero.subtitle}
                 </p>
+                
+                <div className="p-6 bg-rose-nude-100 rounded-lg border border-rose-nude-200 mb-6">
+                  <p className="text-rose-nude-800 font-semibold text-center">
+                    {homeContent.hero.exclusiveMessage}
+                  </p>
+                </div>
+                
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white">
+                  <Button asChild size="lg" className="bg-rose-nude-500 hover:bg-rose-nude-600 text-white py-3 px-6">
                     <Link to="/booking">
                       <Calendar className="w-5 h-5 mr-2" />
                       Agendar Consulta
                     </Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50">
+                  <Button asChild variant="outline" size="lg" className="border-rose-nude-300 text-rose-nude-700 hover:bg-rose-nude-50 py-3 px-6">
                     <Link to="/about">Conheça Meu Trabalho</Link>
                   </Button>
                 </div>
               </div>
               
-              <div className="text-center lg:text-left">
-                <div className="p-6 bg-rose-nude-100 rounded-lg border border-rose-nude-200">
-                  <p className="text-rose-nude-800 font-semibold">
-                    {homeContent.hero.exclusiveMessage}
-                  </p>
-                </div>
-              </div>
-              
               <div className="relative flex items-center justify-center">
-                <div className="bg-gradient-to-br from-rose-nude-200 to-rose-nude-300 rounded-2xl p-6 md:p-8 text-center shadow-xl w-full max-w-sm mx-auto">
+                <div className="bg-gradient-to-br from-rose-nude-200 to-rose-nude-300 rounded-2xl p-6 md:p-8 text-center shadow-xl w-full max-w-sm mx-auto h-full flex flex-col justify-center">
                   <div 
                     className="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 flex items-center justify-center overflow-hidden"
                     style={{
