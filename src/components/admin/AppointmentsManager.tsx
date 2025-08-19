@@ -38,11 +38,10 @@ const AppointmentsManager = () => {
     try {
       setLoading(true);
       
-      // Primeiro buscar todos os agendamentos dos clientes (não do admin)
+      // Buscar todos os agendamentos
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select('*')
-        .neq('user_id', (await supabase.auth.getUser()).data.user?.id) // Excluir agendamentos do próprio admin
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
