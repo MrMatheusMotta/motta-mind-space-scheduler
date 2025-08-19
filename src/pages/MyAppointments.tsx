@@ -39,11 +39,15 @@ const MyAppointments = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
+      console.log('Fetching appointments for user:', user?.id);
+      
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
         .eq('user_id', user?.id)
         .order('date', { ascending: true });
+
+      console.log('Appointments query result:', { data, error, userExists: !!user });
 
       if (error) {
         console.error('Error fetching appointments:', error);
@@ -51,6 +55,7 @@ const MyAppointments = () => {
         return;
       }
 
+      console.log('Appointments fetched successfully:', data);
       setAppointments(data || []);
     } catch (error) {
       console.error('Error:', error);

@@ -55,6 +55,8 @@ const Index = () => {
   const fetchUserAppointments = async () => {
     try {
       setLoadingAppointments(true);
+      console.log('Fetching user appointments for user:', user?.id);
+      
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
@@ -64,8 +66,13 @@ const Index = () => {
         .order('time', { ascending: true })
         .limit(3);
 
+      console.log('User appointments query result:', { data, error, userExists: !!user });
+
       if (!error && data) {
+        console.log('User appointments fetched successfully:', data);
         setUserAppointments(data);
+      } else if (error) {
+        console.error('Error fetching user appointments:', error);
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -174,11 +181,13 @@ const Index = () => {
               {homeContent.features.map((feature, index) => {
                 const IconComponent = iconMap[feature.title as keyof typeof iconMap] || Brain;
                 return (
-                  <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-shadow text-center">
-                    <CardContent className="p-6">
-                      <IconComponent className="w-12 h-12 text-rose-nude-500 mx-auto mb-4" />
-                      <h3 className="font-semibold text-rose-nude-800 mb-2">{feature.title}</h3>
-                      <p className="text-sm text-rose-nude-600">{feature.description}</p>
+                  <Card key={index} className="border-rose-nude-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-rose-nude-400 to-rose-nude-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <IconComponent className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-rose-nude-800 mb-3">{feature.title}</h3>
+                      <p className="text-sm text-rose-nude-600 leading-relaxed">{feature.description}</p>
                     </CardContent>
                   </Card>
                 );
