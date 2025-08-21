@@ -225,15 +225,48 @@ const MyAppointments = () => {
                           </div>
                           
                           <div className="flex gap-2">
-                            {appointment.type === 'online' && appointment.status === 'confirmado' && (
-                              <Button
-                                onClick={() => navigate("/videocall")}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <Video className="w-4 h-4 mr-2" />
-                                Entrar na Consulta
-                              </Button>
-                            )}
+                            {appointment.type === 'online' && appointment.status === 'confirmado' && (() => {
+                              const appointmentDate = new Date(`${appointment.date}T${appointment.time}`);
+                              const now = new Date();
+                              const fifteenMinutesBefore = new Date(appointmentDate.getTime() - 15 * 60 * 1000);
+                              const appointmentDay = new Date(appointment.date).toDateString();
+                              const today = new Date().toDateString();
+                              
+                              const isAppointmentDay = appointmentDay === today;
+                              const canEnter = isAppointmentDay && now >= fifteenMinutesBefore && now <= appointmentDate;
+                              
+                              if (canEnter) {
+                                return (
+                                  <Button
+                                    onClick={() => navigate("/videocall")}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    <Video className="w-4 h-4 mr-2" />
+                                    Entrar na Consulta
+                                  </Button>
+                                );
+                              } else if (isAppointmentDay) {
+                                return (
+                                  <Button 
+                                    disabled
+                                    className="bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  >
+                                    <Video className="w-4 h-4 mr-2" />
+                                    Aguarde 15min antes
+                                  </Button>
+                                );
+                              } else {
+                                return (
+                                  <Button 
+                                    disabled
+                                    className="bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  >
+                                    <Video className="w-4 h-4 mr-2" />
+                                    Disponível no dia
+                                  </Button>
+                                );
+                              }
+                            })()}
                             
                             {(appointment.status === 'agendado' || appointment.status === 'confirmado') && (
                               <AlertDialog>

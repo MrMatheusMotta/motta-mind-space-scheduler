@@ -10,10 +10,9 @@ const Header = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
     setMobileMenuOpen(false);
+    await logout(); // logout já faz o redirecionamento
   };
 
   const scrollToContact = () => {

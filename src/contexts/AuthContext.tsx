@@ -283,11 +283,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clear session state first
       setUser(null);
       setSession(null);
+      
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.error('Erro ao fazer logout:', error);
+      }
+      
+      // Force page reload to ensure clean state
+      window.location.href = '/';
     } catch (error) {
-      console.error('Erro durante logout:', error);
+      console.error('Erro ao fazer logout:', error);
+      // Force reload even if there's an error
+      window.location.href = '/';
     }
   };
 
