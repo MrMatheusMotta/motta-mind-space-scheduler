@@ -37,6 +37,17 @@ const AppointmentsManager = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
+      console.log('AppointmentsManager: Starting fetch...');
+      
+      // Primeiro, verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('Current user:', user?.email);
+      
+      if (authError || !user) {
+        console.error('User not authenticated:', authError);
+        toast.error("Usuário não autenticado");
+        return;
+      }
       
       // Buscar todos os agendamentos  
       const { data: appointmentsData, error: appointmentsError } = await supabase
@@ -45,18 +56,24 @@ const AppointmentsManager = () => {
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
+      console.log('Appointments fetch result:', { appointmentsData, appointmentsError });
+
       if (appointmentsError) {
         console.error('Error fetching appointments:', appointmentsError);
-        toast.error("Erro ao carregar agendamentos");
+        toast.error("Erro ao carregar agendamentos: " + appointmentsError.message);
         return;
       }
 
       // Depois buscar os perfis dos usuários
       const userIds = appointmentsData?.map(app => app.user_id) || [];
+      console.log('User IDs to fetch profiles for:', userIds);
+      
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, phone')
         .in('id', userIds);
+
+      console.log('Profiles fetch result:', { profilesData, profilesError });
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
@@ -68,7 +85,13 @@ const AppointmentsManager = () => {
         profiles: profilesData?.find(profile => profile.id === appointment.user_id) || null
       })) || [];
 
+      console.log('Final appointments with profiles:', appointmentsWithProfiles);
       setAppointments(appointmentsWithProfiles);
+      
+      if (appointmentsWithProfiles.length === 0) {
+        console.warn('No appointments found - this might indicate a RLS policy issue');
+      }
+      
     } catch (error) {
       console.error('Error:', error);
       toast.error("Erro ao carregar agendamentos");
