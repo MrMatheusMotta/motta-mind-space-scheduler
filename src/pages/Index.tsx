@@ -55,7 +55,6 @@ const Index = () => {
   const fetchUserAppointments = async () => {
     try {
       setLoadingAppointments(true);
-      console.log('Fetching user appointments for user:', user?.id);
       
       const { data, error } = await supabase
         .from('appointments')
@@ -66,13 +65,8 @@ const Index = () => {
         .order('time', { ascending: true })
         .limit(3);
 
-      console.log('User appointments query result:', { data, error, userExists: !!user });
-
       if (!error && data) {
-        console.log('User appointments fetched successfully:', data);
         setUserAppointments(data);
-      } else if (error) {
-        console.error('Error fetching user appointments:', error);
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);

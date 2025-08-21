@@ -37,16 +37,13 @@ const AppointmentsManager = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      console.log('AppointmentsManager: Fetching all appointments for admin');
       
-      // Buscar todos os agendamentos
+      // Buscar todos os agendamentos  
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select('*')
         .order('date', { ascending: true })
         .order('time', { ascending: true });
-
-      console.log('AppointmentsManager: Query result:', { appointmentsData, appointmentsError });
 
       if (appointmentsError) {
         console.error('Error fetching appointments:', appointmentsError);
