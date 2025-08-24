@@ -29,24 +29,45 @@ const Index = () => {
   const fetchApprovedTestimonials = async () => {
     try {
       setLoadingTestimonials(true);
-      const { data, error } = await supabase
+      
+      // Fetch testimonials first
+      const { data: testimonials, error: testimonialsError } = await supabase
         .from('testimonials')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('is_approved', true)
         .order('created_at', { ascending: false })
         .limit(6);
 
-      if (!error && data) {
-        setRealTestimonials(data);
+      if (testimonialsError) {
+        console.error('Error fetching testimonials:', testimonialsError);
+        setRealTestimonials([]);
+        return;
       }
+
+      if (!testimonials || testimonials.length === 0) {
+        setRealTestimonials([]);
+        return;
+      }
+
+      // Get unique user IDs from testimonials
+      const userIds = [...new Set(testimonials.map(t => t.user_id).filter(Boolean))];
+      
+      // Fetch profile data for those users
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      // Combine testimonials with profile data
+      const testimonialsWithProfiles = testimonials.map(testimonial => ({
+        ...testimonial,
+        profiles: profiles?.find(p => p.id === testimonial.user_id) || null
+      }));
+
+      setRealTestimonials(testimonialsWithProfiles);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
+      setRealTestimonials([]);
     } finally {
       setLoadingTestimonials(false);
     }
