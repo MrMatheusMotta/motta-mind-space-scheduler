@@ -3,11 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Video, MapPin, User, Phone, Mail, CheckCircle, X, Edit } from "lucide-react";
+import { Calendar, Clock, Video, MapPin, User, Phone, Mail, CheckCircle, X, Edit, Bug } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import CreateAppointmentModal from "./CreateAppointmentModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { checkAdminPermissions, debugAppointmentAccess } from "@/utils/supabaseAdmin";
 
 interface Appointment {
   id: string;
@@ -26,75 +28,103 @@ interface Appointment {
 }
 
 const AppointmentsManager = () => {
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
-    fetchAppointments();
-  }, []);
+    if (user?.role === 'admin') {
+      fetchAppointments();
+    }
+  }, [user]);
+
+  const runDebug = async () => {
+    console.log('🔧 Running debug checks...');
+    const adminCheck = await checkAdminPermissions();
+    const debugResult = await debugAppointmentAccess();
+    
+    setDebugInfo({ adminCheck, debugResult });
+    console.log('🔧 Debug complete:', { adminCheck, debugResult });
+    
+    toast.info(`Debug: Admin=${adminCheck.isAdmin}, Appointments=${adminCheck.appointmentCount || 0}`);
+  };
 
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      console.log('AppointmentsManager: Starting fetch...');
+      console.log('🔍 AppointmentsManager: Starting fetch...');
       
-      // Primeiro, verificar se o usuário está autenticado
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log('Current user:', user?.email);
+      // Verificar permissões de admin
+      const adminCheck = await checkAdminPermissions();
+      console.log('🔑 Admin check result:', adminCheck);
       
-      if (authError || !user) {
-        console.error('User not authenticated:', authError);
-        toast.error("Usuário não autenticado");
+      if (!adminCheck.isAdmin) {
+        toast.error(adminCheck.error || "Acesso negado");
         return;
       }
       
-      // Buscar todos os agendamentos  
+      // Método simplificado - buscar diretamente todos os agendamentos
+      console.log('📋 Fetching all appointments...');
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select('*')
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
-      console.log('Appointments fetch result:', { appointmentsData, appointmentsError });
+      console.log('📊 Raw query result:', {
+        count: appointmentsData?.length || 0,
+        error: appointmentsError?.message,
+        data: appointmentsData
+      });
 
       if (appointmentsError) {
-        console.error('Error fetching appointments:', appointmentsError);
+        console.error('❌ Error fetching appointments:', appointmentsError);
         toast.error("Erro ao carregar agendamentos: " + appointmentsError.message);
+        
+        // Em caso de erro, tentar debug
+        await runDebug();
         return;
       }
 
-      // Depois buscar os perfis dos usuários
-      const userIds = appointmentsData?.map(app => app.user_id) || [];
-      console.log('User IDs to fetch profiles for:', userIds);
+      if (!appointmentsData || appointmentsData.length === 0) {
+        console.warn('⚠️ No appointments found');
+        setAppointments([]);
+        toast.info("Nenhum agendamento encontrado no sistema");
+        return;
+      }
+
+      console.log(`✅ Found ${appointmentsData.length} appointments`);
+
+      // Buscar perfis dos usuários
+      const userIds = [...new Set(appointmentsData.map(app => app.user_id))];
+      console.log('👥 Fetching profiles for users:', userIds);
       
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, phone')
         .in('id', userIds);
 
-      console.log('Profiles fetch result:', { profilesData, profilesError });
+      console.log('👤 Profiles result:', { 
+        count: profilesData?.length || 0, 
+        error: profilesError?.message 
+      });
 
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-      }
-
-      // Combinar os dados
-      const appointmentsWithProfiles = appointmentsData?.map(appointment => ({
+      // Combinar dados
+      const appointmentsWithProfiles = appointmentsData.map(appointment => ({
         ...appointment,
         profiles: profilesData?.find(profile => profile.id === appointment.user_id) || null
-      })) || [];
+      }));
 
-      console.log('Final appointments with profiles:', appointmentsWithProfiles);
+      console.log('🔄 Final result:', appointmentsWithProfiles.length, 'appointments with profiles');
       setAppointments(appointmentsWithProfiles);
       
-      if (appointmentsWithProfiles.length === 0) {
-        console.warn('No appointments found - this might indicate a RLS policy issue');
-      }
+      toast.success(`${appointmentsWithProfiles.length} agendamento(s) carregado(s)`);
       
     } catch (error) {
-      console.error('Error:', error);
-      toast.error("Erro ao carregar agendamentos");
+      console.error('💥 Unexpected error:', error);
+      toast.error("Erro inesperado ao carregar agendamentos");
     } finally {
       setLoading(false);
     }
@@ -143,6 +173,18 @@ const AppointmentsManager = () => {
     statusFilter === "all" || appointment.status === statusFilter
   );
 
+  // Verificar se o usuário é admin
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold text-rose-nude-800">Acesso Negado</h2>
+          <p className="text-rose-nude-600">Apenas administradores podem acessar esta página.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -158,7 +200,14 @@ const AppointmentsManager = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-rose-nude-800">Gerenciar Agendamentos</h2>
-        <p className="text-rose-nude-600">Visualize e gerencie todos os agendamentos dos pacientes.</p>
+        <p className="text-rose-nude-600">
+          Visualize e gerencie todos os agendamentos dos pacientes.
+          {appointments.length > 0 && (
+            <span className="font-semibold text-green-600 ml-2">
+              ({appointments.length} agendamento{appointments.length !== 1 ? 's' : ''} encontrado{appointments.length !== 1 ? 's' : ''})
+            </span>
+          )}
+        </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -185,8 +234,30 @@ const AppointmentsManager = () => {
           >
             Atualizar Lista
           </Button>
+
+          <Button 
+            onClick={runDebug}
+            variant="secondary"
+            className="w-full sm:w-auto bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Debug
+          </Button>
         </div>
       </div>
+
+      {debugInfo && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-yellow-800">Informações de Debug</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs text-yellow-700 bg-yellow-100 p-2 rounded overflow-auto">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4">
         {filteredAppointments.length === 0 ? (
@@ -194,8 +265,21 @@ const AppointmentsManager = () => {
             <CardContent className="py-8 text-center">
               <Calendar className="w-12 h-12 mx-auto text-rose-nude-400 mb-4" />
               <p className="text-rose-nude-600">
-                Nenhum agendamento encontrado para o filtro selecionado
+                {appointments.length === 0 
+                  ? "Nenhum agendamento encontrado no sistema" 
+                  : "Nenhum agendamento encontrado para o filtro selecionado"
+                }
               </p>
+              {appointments.length === 0 && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm text-gray-500">
+                    Os agendamentos aparecerão aqui quando os pacientes realizarem marcações.
+                  </p>
+                  <Button onClick={runDebug} variant="outline" size="sm">
+                    Executar Diagnóstico
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : (
