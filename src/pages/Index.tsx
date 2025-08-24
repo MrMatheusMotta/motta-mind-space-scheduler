@@ -68,7 +68,6 @@ const Index = () => {
     } catch (error) {
       console.error('Error fetching testimonials:', error);
       setRealTestimonials([]);
-    } finally {
       setLoadingTestimonials(false);
     }
   };

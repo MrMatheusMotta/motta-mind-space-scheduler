@@ -21,6 +21,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  isAdmin: () => boolean;
   isLoading: boolean;
 }
 
@@ -301,6 +302,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const isAdmin = (): boolean => {
+    return user?.role === 'admin' || user?.email === 'psicologadaianesilva@outlook.com';
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -309,6 +314,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     updatePassword,
     resetPassword,
+    isAdmin,
     isLoading
   };
 

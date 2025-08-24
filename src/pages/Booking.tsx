@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const Booking = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { settings } = useAdminSettings();
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -170,9 +170,14 @@ const Booking = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold gradient-text mb-4">Agendar Consulta</h1>
+            <h1 className="text-4xl font-bold gradient-text mb-4">
+              {isAdmin() ? "Agendar Consulta (Admin)" : "Agendar Consulta"}
+            </h1>
             <p className="text-lg text-rose-nude-600">
-              Bem-vindo(a), {getUserFirstName()}! Escolha o melhor horário para sua consulta.
+              {isAdmin() 
+                ? "Bem-vindo(a), Dra. Daiane! Agende uma consulta para um paciente." 
+                : `Bem-vindo(a), ${getUserFirstName()}! Escolha o melhor horário para sua consulta.`
+              }
             </p>
           </div>
 

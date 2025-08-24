@@ -22,7 +22,7 @@ interface Appointment {
 }
 
 const MyAppointments = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,11 +40,16 @@ const MyAppointments = () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('appointments')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('date', { ascending: true });
+        .select('*');
+      
+      // Se for admin, buscar todos os agendamentos. Se não, apenas os do usuário
+      if (!isAdmin()) {
+        query = query.eq('user_id', user?.id);
+      }
+      
+      const { data, error } = await query.order('date', { ascending: true });
 
       if (error) {
         console.error('Error fetching appointments:', error);
@@ -52,7 +57,7 @@ const MyAppointments = () => {
         return;
       }
 
-      
+      console.log(`📋 Fetched ${data?.length || 0} appointments for ${isAdmin() ? 'admin' : 'user'}`);
       setAppointments(data || []);
     } catch (error) {
       console.error('Error:', error);
@@ -128,9 +133,14 @@ const MyAppointments = () => {
               Voltar
             </Button>
             <div>
-              <h1 className="text-4xl font-bold gradient-text mb-2">Meus Agendamentos</h1>
+              <h1 className="text-4xl font-bold gradient-text mb-2">
+                {isAdmin() ? "Todos os Agendamentos (Admin)" : "Meus Agendamentos"}
+              </h1>
               <p className="text-lg text-rose-nude-600">
-                Acompanhe suas consultas e histórico de atendimentos
+                {isAdmin() 
+                  ? "Gerencie todos os agendamentos do sistema" 
+                  : "Acompanhe suas consultas e histórico de atendimentos"
+                }
               </p>
             </div>
           </div>
