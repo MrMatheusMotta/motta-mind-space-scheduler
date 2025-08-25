@@ -29,12 +29,14 @@ const MyAppointments = () => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !loading) {
       navigate("/login");
       return;
     }
-    fetchAppointments();
-  }, [user, navigate]);
+    if (user) {
+      fetchAppointments();
+    }
+  }, [user, loading, navigate]);
 
   const fetchAppointments = async () => {
     try {

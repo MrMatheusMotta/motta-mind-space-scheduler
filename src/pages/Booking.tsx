@@ -32,10 +32,10 @@ const Booking = () => {
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !isLoading) {
       navigate("/login");
     }
-  }, [user, navigate]);
+  }, [user, isLoading, navigate]);
 
   const timeSlots = [
     "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"

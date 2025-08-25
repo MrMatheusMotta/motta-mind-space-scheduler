@@ -11,7 +11,7 @@ import Header from "@/components/Header";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const VideoCall = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { settings } = useAdminSettings();
   const navigate = useNavigate();
   const [isVideoOn, setIsVideoOn] = useState(true);
@@ -23,11 +23,12 @@ const VideoCall = () => {
   const [isExtendedByAdmin, setIsExtendedByAdmin] = useState(false);
 
   useEffect(() => {
-    if (!user) {
+    // Only redirect to login if auth loading is complete and user is null
+    if (!user && !isLoading) {
       navigate("/login");
       return;
     }
-  }, [user, navigate]);
+  }, [user, isLoading, navigate]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
