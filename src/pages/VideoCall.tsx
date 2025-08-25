@@ -22,13 +22,20 @@ const VideoCall = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [isExtendedByAdmin, setIsExtendedByAdmin] = useState(false);
 
-  useEffect(() => {
-    // Only redirect to login if auth loading is complete and user is null
-    if (!user && !isLoading) {
-      navigate("/login");
-      return;
-    }
-  }, [user, isLoading, navigate]);
+  // Show loading state while auth is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50 flex items-center justify-center">
+        <p className="text-rose-nude-600">Carregando...</p>
+      </div>
+    );
+  }
+
+  // Redirect to login only after loading is complete and user is null
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

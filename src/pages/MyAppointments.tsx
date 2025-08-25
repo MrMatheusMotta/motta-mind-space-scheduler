@@ -22,21 +22,32 @@ interface Appointment {
 }
 
 const MyAppointments = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
 
+  // Show loading state while auth is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50 flex items-center justify-center">
+        <p className="text-rose-nude-600">Carregando...</p>
+      </div>
+    );
+  }
+
+  // Redirect to login only after loading is complete and user is null
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
+
   useEffect(() => {
-    if (!user && !loading) {
-      navigate("/login");
-      return;
-    }
     if (user) {
       fetchAppointments();
     }
-  }, [user, loading, navigate]);
+  }, [user]);
 
   const fetchAppointments = async () => {
     try {

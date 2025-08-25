@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 
 const Booking = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
   const { settings } = useAdminSettings();
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -28,14 +28,23 @@ const Booking = () => {
   const [selectedService, setSelectedService] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [notes, setNotes] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user && !isLoading) {
-      navigate("/login");
-    }
-  }, [user, isLoading, navigate]);
+  // Show loading state while auth is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50 flex items-center justify-center">
+        <p className="text-rose-nude-600">Carregando...</p>
+      </div>
+    );
+  }
+
+  // Redirect to login only after loading is complete and user is null
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
 
   const timeSlots = [
     "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
@@ -70,7 +79,7 @@ const Booking = () => {
       return;
     }
 
-    setIsLoading(true);
+    setBookingLoading(true);
 
     try {
       const selectedServiceData = settings.services.find(s => s.id === selectedService);
@@ -146,7 +155,7 @@ const Booking = () => {
       console.error('Erro inesperado:', error);
       toast.error("Erro inesperado ao realizar agendamento. Tente novamente.");
     } finally {
-      setIsLoading(false);
+      setBookingLoading(false);
     }
   };
 
@@ -317,9 +326,9 @@ const Booking = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-rose-nude-500 hover:bg-rose-nude-600 text-white py-3"
-                      disabled={isLoading}
+                      disabled={bookingLoading}
                     >
-                      {isLoading ? "Agendando..." : "Confirmar Agendamento"}
+                      {bookingLoading ? "Agendando..." : "Confirmar Agendamento"}
                     </Button>
                   </form>
                 </CardContent>

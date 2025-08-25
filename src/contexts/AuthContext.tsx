@@ -72,14 +72,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
+    console.log('🔄 Setting up auth state listener...');
+    
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
+        if (!isMounted) return;
+        
+        console.log(`🔄 Auth state changed: ${event}`, session?.user ? 'User found' : 'No user');
+        
         setSession(session);
         
         if (session?.user) {
           // Use setTimeout to avoid potential deadlocks
           setTimeout(async () => {
+            if (!isMounted) return;
+            
             try {
               const isAdmin = session.user.email === 'psicologadaianesilva@outlook.com';
               
@@ -103,13 +113,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               });
               
               // Create or update profile if it doesn't exist
-              if (!profile && !error) {
+              if (!profile && !error && !isAdmin) {
                 console.log('Creating profile for user...');
                 const { error: insertError } = await supabase
                   .from('profiles')
                   .insert({
                     id: session.user.id,
-                    full_name: session.user.user_metadata?.full_name || (isAdmin ? 'Dra. Daiane Silva' : ''),
+                    full_name: session.user.user_metadata?.full_name || '',
                     phone: session.user.user_metadata?.phone || '',
                     cpf: session.user.user_metadata?.cpf || ''
                   });
@@ -131,21 +141,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 role: isAdmin ? 'admin' : 'user'
               });
             }
-          }, 0);
+            
+            setIsLoading(false);
+          }, 100);
         } else {
           setUser(null);
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsLoading(false);
-    });
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        console.log('🔍 Checking for existing session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          setIsLoading(false);
+          return;
+        }
 
-    return () => subscription.unsubscribe();
+        console.log('Initial session check:', session ? 'Session found' : 'No session');
+        
+        if (!session && isMounted) {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
+        setIsLoading(false);
+      }
+    };
+
+    getInitialSession();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
