@@ -79,11 +79,17 @@ const MyAppointments = () => {
 
   const cancelAppointment = async (appointmentId: string) => {
     try {
-      const { error } = await supabase
+      let updateQuery = supabase
         .from('appointments')
         .update({ status: 'cancelado' })
-        .eq('id', appointmentId)
-        .eq('user_id', user?.id); // Garantir que só pode cancelar próprios agendamentos
+        .eq('id', appointmentId);
+      
+      // Se não for admin, adicionar filtro de user_id
+      if (!isAdmin()) {
+        updateQuery = updateQuery.eq('user_id', user?.id);
+      }
+      
+      const { error } = await updateQuery;
 
       if (error) {
         console.error('Error canceling appointment:', error);
@@ -108,7 +114,7 @@ const MyAppointments = () => {
   const historyAppointments = appointments.filter(app => !isUpcoming(app));
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('pt-BR');
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');
   };
 
   const formatTime = (timeStr: string) => {
@@ -134,7 +140,7 @@ const MyAppointments = () => {
             </Button>
             <div>
               <h1 className="text-4xl font-bold gradient-text mb-2">
-                {isAdmin() ? "Todos os Agendamentos (Admin)" : "Meus Agendamentos"}
+                {isAdmin() ? "Todos os Agendamentos" : "Meus Agendamentos"}
               </h1>
               <p className="text-lg text-rose-nude-600">
                 {isAdmin() 

@@ -142,9 +142,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (!session) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
