@@ -540,9 +540,15 @@ const Index = () => {
             <p className="text-md text-rose-nude-100 mb-8">
               <strong>{homeContent.cta.exclusiveNote}</strong>
             </p>
-            <Button asChild size="lg" className="bg-white text-rose-nude-600 hover:bg-rose-nude-50">
-              <Link to="/register">Começar Agora</Link>
-            </Button>
+            {!user ? (
+              <Button asChild size="lg" className="bg-white text-rose-nude-600 hover:bg-rose-nude-50">
+                <Link to="/register">Começar Agora</Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="bg-white text-rose-nude-600 hover:bg-rose-nude-50">
+                <Link to="/booking">Agendar Nova Consulta</Link>
+              </Button>
+            )}
           </div>
         </div>
       </section>

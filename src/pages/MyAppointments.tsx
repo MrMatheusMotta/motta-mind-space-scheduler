@@ -44,10 +44,6 @@ const MyAppointments = () => {
   }
 
   // Return null if no user (will be redirected)
-  if (!user) {
-    return null;
-  }
-
   useEffect(() => {
     if (user) {
       fetchAppointments();
@@ -139,7 +135,7 @@ const MyAppointments = () => {
     return timeStr.slice(0, 5);
   };
 
-  if (!user) return null;
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50">

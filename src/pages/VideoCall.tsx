@@ -125,7 +125,7 @@ const VideoCall = () => {
     toast.success("Sessão estendida em 15 minutos");
   };
 
-  if (!user) return null;
+  
 
   const remainingMinutes = Math.floor(((sessionDuration * 60) - callDuration) / 60);
   const isNearEnd = remainingMinutes <= 5 && isCallActive;
