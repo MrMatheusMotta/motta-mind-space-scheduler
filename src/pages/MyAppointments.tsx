@@ -31,8 +31,15 @@ const MyAppointments = () => {
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/login");
+      return;
     }
   }, [user, isLoading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      fetchAppointments();
+    }
+  }, [user]);
 
   // Show loading state while auth is loading
   if (isLoading) {
@@ -43,12 +50,14 @@ const MyAppointments = () => {
     );
   }
 
-  // Return null if no user (will be redirected)
-  useEffect(() => {
-    if (user) {
-      fetchAppointments();
-    }
-  }, [user]);
+  // If not loading and no user, component will be redirected by useEffect above
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50 flex items-center justify-center">
+        <p className="text-rose-nude-600">Redirecionando...</p>
+      </div>
+    );
+  }
 
   const fetchAppointments = async () => {
     try {

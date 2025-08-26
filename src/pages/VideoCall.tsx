@@ -25,6 +25,7 @@ const VideoCall = () => {
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/login");
+      return;
     }
   }, [user, isLoading, navigate]);
 
@@ -37,9 +38,13 @@ const VideoCall = () => {
     );
   }
 
-  // Return null if no user (will be redirected)
+  // If not loading and no user, component will be redirected by useEffect above
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50 flex items-center justify-center">
+        <p className="text-rose-nude-600">Redirecionando...</p>
+      </div>
+    );
   }
 
   useEffect(() => {
