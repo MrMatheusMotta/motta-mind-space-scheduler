@@ -22,6 +22,12 @@ const VideoCall = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [isExtendedByAdmin, setIsExtendedByAdmin] = useState(false);
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate("/login");
+    }
+  }, [user, isLoading, navigate]);
+
   // Show loading state while auth is loading
   if (isLoading) {
     return (
@@ -31,9 +37,8 @@ const VideoCall = () => {
     );
   }
 
-  // Redirect to login only after loading is complete and user is null
+  // Return null if no user (will be redirected)
   if (!user) {
-    navigate("/login");
     return null;
   }
 

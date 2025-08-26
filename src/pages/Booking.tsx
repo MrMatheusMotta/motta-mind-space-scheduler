@@ -31,6 +31,12 @@ const Booking = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate("/login");
+    }
+  }, [user, isLoading, navigate]);
+
   // Show loading state while auth is loading
   if (isLoading) {
     return (
@@ -40,9 +46,8 @@ const Booking = () => {
     );
   }
 
-  // Redirect to login only after loading is complete and user is null
+  // Return null if no user (will be redirected)
   if (!user) {
-    navigate("/login");
     return null;
   }
 
@@ -180,7 +185,7 @@ const Booking = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold gradient-text mb-4">
-              {isAdmin() ? "Agendar Consulta (Admin)" : "Agendar Consulta"}
+              Agendar Consulta
             </h1>
             <p className="text-lg text-rose-nude-600">
               {isAdmin() 

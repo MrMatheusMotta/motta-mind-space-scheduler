@@ -28,6 +28,12 @@ const MyAppointments = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
 
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate("/login");
+    }
+  }, [user, isLoading, navigate]);
+
   // Show loading state while auth is loading
   if (isLoading) {
     return (
@@ -37,9 +43,8 @@ const MyAppointments = () => {
     );
   }
 
-  // Redirect to login only after loading is complete and user is null
+  // Return null if no user (will be redirected)
   if (!user) {
-    navigate("/login");
     return null;
   }
 
