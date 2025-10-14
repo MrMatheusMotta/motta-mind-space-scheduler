@@ -30,10 +30,17 @@ const Index = () => {
     try {
       setLoadingTestimonials(true);
       
-      // Fetch testimonials first
+      // Fetch testimonials with profile data using JOIN
       const { data: testimonials, error: testimonialsError } = await supabase
         .from('testimonials')
-        .select('*')
+        .select(`
+          *,
+          profiles:user_id (
+            id,
+            full_name,
+            avatar_url
+          )
+        `)
         .eq('is_approved', true)
         .order('created_at', { ascending: false })
         .limit(6);
@@ -44,30 +51,11 @@ const Index = () => {
         return;
       }
 
-      if (!testimonials || testimonials.length === 0) {
-        setRealTestimonials([]);
-        return;
-      }
-
-      // Get unique user IDs from testimonials
-      const userIds = [...new Set(testimonials.map(t => t.user_id).filter(Boolean))];
-      
-      // Fetch profile data for those users
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', userIds);
-
-      // Combine testimonials with profile data
-      const testimonialsWithProfiles = testimonials.map(testimonial => ({
-        ...testimonial,
-        profiles: profiles?.find(p => p.id === testimonial.user_id) || null
-      }));
-
-      setRealTestimonials(testimonialsWithProfiles);
+      setRealTestimonials(testimonials || []);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
       setRealTestimonials([]);
+    } finally {
       setLoadingTestimonials(false);
     }
   };

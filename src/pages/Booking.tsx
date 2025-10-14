@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
+import { useAvailableTimeSlots } from "@/hooks/useAvailableTimeSlots";
 
 const Booking = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -30,6 +31,12 @@ const Booking = () => {
   const [notes, setNotes] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  const timeSlots = [
+    "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
+  ];
+
+  const { availableSlots, loading: loadingSlots } = useAvailableTimeSlots(selectedDate, timeSlots);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -46,14 +53,14 @@ const Booking = () => {
     );
   }
 
-  // Return null if no user (will be redirected)
+  // If not loading and no user, component will be redirected by useEffect above
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-nude-50 via-white to-nude-50 flex items-center justify-center">
+        <p className="text-rose-nude-600">Redirecionando...</p>
+      </div>
+    );
   }
-
-  const timeSlots = [
-    "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
-  ];
 
   const getCurrentPrice = () => {
     const service = settings.services.find(s => s.id === selectedService);
@@ -101,11 +108,10 @@ const Booking = () => {
       
       console.log('Dados do agendamento:', appointmentData);
       
-      // Verificar se já existe agendamento na mesma data e horário
+      // Verificar se o horário está disponível (QUALQUER pessoa já agendou)
       const { data: existingAppointments, error: checkError } = await supabase
         .from('appointments')
         .select('id')
-        .eq('user_id', user.id)
         .eq('date', appointmentData.date)
         .eq('time', appointmentData.time)
         .in('status', ['agendado', 'confirmado']);
@@ -117,7 +123,7 @@ const Booking = () => {
       }
 
       if (existingAppointments && existingAppointments.length > 0) {
-        toast.error('Você já possui um agendamento para este dia e horário. Escolha outro horário.');
+        toast.error('Este horário já está ocupado. Por favor, escolha outro horário disponível.');
         return;
       }
       
@@ -295,23 +301,39 @@ const Booking = () => {
 
                     <div className="space-y-3">
                       <Label className="text-rose-nude-700 font-medium">Horário *</Label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {timeSlots.map((time) => (
-                          <Button
-                            key={time}
-                            type="button"
-                            variant={selectedTime === time ? "default" : "outline"}
-                            className={cn(
-                              "border-rose-nude-200",
-                              selectedTime === time && "bg-rose-nude-500 hover:bg-rose-nude-600"
-                            )}
-                            onClick={() => setSelectedTime(time)}
-                          >
-                            <Clock className="w-4 h-4 mr-2" />
-                            {time}
-                          </Button>
-                        ))}
-                      </div>
+                      {loadingSlots ? (
+                        <div className="text-center py-4 text-rose-nude-600">
+                          Verificando horários disponíveis...
+                        </div>
+                      ) : availableSlots.length === 0 ? (
+                        <div className="text-center py-4 text-rose-nude-600">
+                          Nenhum horário disponível para esta data. Escolha outra data.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-3">
+                          {timeSlots.map((time) => {
+                            const isAvailable = availableSlots.includes(time);
+                            return (
+                              <Button
+                                key={time}
+                                type="button"
+                                variant={selectedTime === time ? "default" : "outline"}
+                                className={cn(
+                                  "border-rose-nude-200",
+                                  selectedTime === time && "bg-rose-nude-500 hover:bg-rose-nude-600",
+                                  !isAvailable && "opacity-50 cursor-not-allowed bg-gray-100"
+                                )}
+                                onClick={() => isAvailable && setSelectedTime(time)}
+                                disabled={!isAvailable}
+                              >
+                                <Clock className="w-4 h-4 mr-2" />
+                                {time}
+                                {!isAvailable && " (Ocupado)"}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-3">

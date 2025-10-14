@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
+import { useAvailableTimeSlots } from "@/hooks/useAvailableTimeSlots";
 
 interface Profile {
   id: string;
@@ -42,6 +43,8 @@ const CreateAppointmentModal = ({ onAppointmentCreated }: { onAppointmentCreated
     "11:00", "11:30", "13:00", "13:30", "14:00", "14:30",
     "15:00", "15:30", "16:00", "16:30", "17:00"
   ];
+
+  const { availableSlots, loading: loadingSlots } = useAvailableTimeSlots(selectedDate, timeSlots);
 
   useEffect(() => {
     if (open) {
@@ -99,9 +102,29 @@ const CreateAppointmentModal = ({ onAppointmentCreated }: { onAppointmentCreated
     try {
       const selectedServiceData = settings.services.find(s => s.id.toString() === selectedService);
       
+      // Verificar se o horário está disponível
+      const checkDate = format(selectedDate, 'yyyy-MM-dd');
+      const { data: existingAppointments, error: checkError } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('date', checkDate)
+        .eq('time', selectedTime)
+        .in('status', ['agendado', 'confirmado']);
+
+      if (checkError) {
+        console.error('Erro ao verificar disponibilidade:', checkError);
+        toast.error('Erro ao verificar disponibilidade do horário');
+        return;
+      }
+
+      if (existingAppointments && existingAppointments.length > 0) {
+        toast.error('Este horário já está ocupado. Por favor, escolha outro horário.');
+        return;
+      }
+
       const appointmentData = {
         user_id: selectedClientId,
-        date: format(selectedDate, 'yyyy-MM-dd'),
+        date: checkDate,
         time: selectedTime,
         service: selectedServiceData?.name || 'Serviço não encontrado',
         status: 'confirmado', // Admin já confirma o agendamento diretamente
@@ -245,21 +268,39 @@ const CreateAppointmentModal = ({ onAppointmentCreated }: { onAppointmentCreated
           {/* Seleção do Horário */}
           <div className="space-y-2">
             <Label className="text-rose-nude-700">Horário *</Label>
-            <div className="grid grid-cols-4 gap-2">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  type="button"
-                  variant={selectedTime === time ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedTime(time)}
-                  className={selectedTime === time ? "bg-rose-nude-500 hover:bg-rose-nude-600" : ""}
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  {time}
-                </Button>
-              ))}
-            </div>
+            {loadingSlots ? (
+              <div className="text-center py-4 text-rose-nude-600">
+                Verificando horários disponíveis...
+              </div>
+            ) : availableSlots.length === 0 ? (
+              <div className="text-center py-4 text-rose-nude-600">
+                Nenhum horário disponível para esta data.
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-2">
+                {timeSlots.map((time) => {
+                  const isAvailable = availableSlots.includes(time);
+                  return (
+                    <Button
+                      key={time}
+                      type="button"
+                      variant={selectedTime === time ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => isAvailable && setSelectedTime(time)}
+                      disabled={!isAvailable}
+                      className={cn(
+                        selectedTime === time ? "bg-rose-nude-500 hover:bg-rose-nude-600" : "",
+                        !isAvailable && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <Clock className="w-3 h-3 mr-1" />
+                      {time}
+                      {!isAvailable && " (Ocupado)"}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Observações */}

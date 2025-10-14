@@ -17,6 +17,7 @@ export type Database = {
       appointments: {
         Row: {
           created_at: string
+          created_by_admin: string | null
           date: string
           id: string
           notes: string | null
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by_admin?: string | null
           date: string
           id?: string
           notes?: string | null
@@ -41,6 +43,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by_admin?: string | null
           date?: string
           id?: string
           notes?: string | null
@@ -148,12 +151,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_profile_with_email: {
+        Args: { profile_id: string }
+        Returns: {
+          avatar_url: string
+          cpf: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
       is_admin: {
         Args: { user_email: string }
         Returns: boolean
       }
       is_admin_by_email: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_slot_available: {
+        Args: {
+          check_date: string
+          check_time: string
+          exclude_appointment_id?: string
+        }
         Returns: boolean
       }
     }
