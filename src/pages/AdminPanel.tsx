@@ -12,6 +12,7 @@ import MessagesManager from "@/components/admin/MessagesManager";
 import HomeContentManager from "@/components/admin/HomeContentManager";
 import AboutContentManager from "@/components/admin/AboutContentManager";
 import AppointmentsManager from "@/components/admin/AppointmentsManager";
+import EvolutionsManager from "@/components/admin/EvolutionsManager";
 
 const AdminPanel = () => {
   return (
@@ -29,10 +30,11 @@ const AdminPanel = () => {
         </div>
 
         <Tabs defaultValue="home" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-10 bg-rose-nude-100 overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-11 bg-rose-nude-100 overflow-x-auto">
             <TabsTrigger value="home" className="text-xs sm:text-sm whitespace-nowrap">Página Inicial</TabsTrigger>
             <TabsTrigger value="about" className="text-xs sm:text-sm whitespace-nowrap">Sobre Mim</TabsTrigger>
             <TabsTrigger value="appointments" className="text-xs sm:text-sm whitespace-nowrap">Agendamentos</TabsTrigger>
+            <TabsTrigger value="evolutions" className="text-xs sm:text-sm whitespace-nowrap">Evoluções</TabsTrigger>
             <TabsTrigger value="services" className="text-xs sm:text-sm whitespace-nowrap">Serviços</TabsTrigger>
             <TabsTrigger value="clinic" className="text-xs sm:text-sm whitespace-nowrap">Clínica</TabsTrigger>
             <TabsTrigger value="schedule" className="text-xs sm:text-sm whitespace-nowrap">Horários</TabsTrigger>
@@ -52,6 +54,10 @@ const AdminPanel = () => {
 
           <TabsContent value="appointments" className="space-y-6">
             <AppointmentsManager />
+          </TabsContent>
+
+          <TabsContent value="evolutions" className="space-y-6">
+            <EvolutionsManager />
           </TabsContent>
 
           <TabsContent value="services" className="space-y-6">

@@ -9,6 +9,7 @@ export const useAvailableTimeSlots = (selectedDate: Date | undefined, allTimeSlo
   useEffect(() => {
     if (!selectedDate) {
       setAvailableSlots(allTimeSlots);
+      setLoading(false);
       return;
     }
 
@@ -17,7 +18,6 @@ export const useAvailableTimeSlots = (selectedDate: Date | undefined, allTimeSlo
       try {
         const dateStr = format(selectedDate, 'yyyy-MM-dd');
         
-        // Buscar todos os agendamentos confirmados ou agendados para a data selecionada
         const { data: bookedAppointments, error } = await supabase
           .from('appointments')
           .select('time')
@@ -27,23 +27,21 @@ export const useAvailableTimeSlots = (selectedDate: Date | undefined, allTimeSlo
         if (error) {
           console.error('Erro ao buscar horários ocupados:', error);
           setAvailableSlots(allTimeSlots);
+          setLoading(false);
           return;
         }
 
-        // Extrair horários ocupados
         const bookedTimes = bookedAppointments?.map(apt => {
-          // Converter time format para HH:mm se necessário
           const timeStr = apt.time.toString();
-          return timeStr.slice(0, 5); // Garantir formato HH:mm
+          return timeStr.slice(0, 5);
         }) || [];
 
-        // Filtrar slots disponíveis
         const available = allTimeSlots.filter(slot => !bookedTimes.includes(slot));
         setAvailableSlots(available);
+        setLoading(false);
       } catch (error) {
         console.error('Erro ao verificar disponibilidade:', error);
         setAvailableSlots(allTimeSlots);
-      } finally {
         setLoading(false);
       }
     };

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, Clock, Plus, User } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Plus, User, UserPlus } from "lucide-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 import { useAvailableTimeSlots } from "@/hooks/useAvailableTimeSlots";
+import QuickPatientRegister from "./QuickPatientRegister";
 
 interface Profile {
   id: string;
@@ -37,6 +38,7 @@ const CreateAppointmentModal = ({ onAppointmentCreated }: { onAppointmentCreated
   const [showCalendar, setShowCalendar] = useState(false);
   const [clients, setClients] = useState<Profile[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
+  const [showQuickRegister, setShowQuickRegister] = useState(false);
 
   const timeSlots = [
     "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
@@ -184,7 +186,19 @@ const CreateAppointmentModal = ({ onAppointmentCreated }: { onAppointmentCreated
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Seleção do Cliente */}
           <div className="space-y-2">
-            <Label htmlFor="client" className="text-rose-nude-700">Cliente *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="client" className="text-rose-nude-700">Cliente *</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowQuickRegister(true)}
+                className="text-rose-nude-600 border-rose-nude-300"
+              >
+                <UserPlus className="w-4 h-4 mr-1" />
+                Novo Paciente
+              </Button>
+            </div>
             <Select value={selectedClientId} onValueChange={setSelectedClientId}>
               <SelectTrigger>
                 <SelectValue placeholder={loadingClients ? "Carregando clientes..." : "Selecione um cliente"} />
@@ -376,6 +390,16 @@ const CreateAppointmentModal = ({ onAppointmentCreated }: { onAppointmentCreated
           </div>
         </form>
       </DialogContent>
+
+      <QuickPatientRegister
+        open={showQuickRegister}
+        onOpenChange={setShowQuickRegister}
+        onPatientCreated={(userId, name) => {
+          setSelectedClientId(userId);
+          fetchClients();
+          toast.success(`Paciente ${name} cadastrado e selecionado!`);
+        }}
+      />
     </Dialog>
   );
 };
