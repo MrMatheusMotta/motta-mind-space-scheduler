@@ -29,29 +29,21 @@ const Index = () => {
   const fetchApprovedTestimonials = async () => {
     try {
       setLoadingTestimonials(true);
-      
-      // Fetch testimonials with profile data using JOIN
-      const { data: testimonials, error: testimonialsError } = await supabase
+
+      const { data, error } = await supabase
         .from('testimonials')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('is_approved', true)
         .order('created_at', { ascending: false })
         .limit(6);
 
-      if (testimonialsError) {
-        console.error('Error fetching testimonials:', testimonialsError);
+      if (error) {
+        console.error('Error fetching testimonials:', error);
         setRealTestimonials([]);
         return;
       }
 
-      setRealTestimonials(testimonials || []);
+      setRealTestimonials(data || []);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
       setRealTestimonials([]);

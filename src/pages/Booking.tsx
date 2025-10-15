@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +32,9 @@ const Booking = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  const timeSlots = [
+  const timeSlots = useMemo(() => [
     "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
-  ];
+  ], []);
 
   const { availableSlots, loading: loadingSlots } = useAvailableTimeSlots(selectedDate, timeSlots);
 
