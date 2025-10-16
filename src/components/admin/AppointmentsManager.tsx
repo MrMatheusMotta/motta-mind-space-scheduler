@@ -338,13 +338,19 @@ const AppointmentsManager = () => {
                     )}
                   </div>
 
-                  {/* Informações do paciente */}
-                  <div className="p-3 bg-rose-nude-50 rounded-lg">
-                    <h4 className="font-medium text-rose-nude-800 mb-2">Informações do Paciente</h4>
+                   {/* Informações do paciente */}
+                  <div className="p-3 bg-rose-nude-50 rounded-lg cursor-pointer hover:bg-rose-nude-100 transition-colors" onClick={() => {
+                    // Navegar para perfil do paciente
+                    window.location.href = `/admin-panel?tab=evolutions&userId=${appointment.user_id}`;
+                  }}>
+                    <h4 className="font-medium text-rose-nude-800 mb-2 flex items-center gap-2">
+                      Informações do Paciente
+                      <Edit className="w-4 h-4" />
+                    </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-2 text-rose-nude-600">
                         <User className="w-4 h-4" />
-                        <span>{appointment.profiles?.full_name || 'Nome não informado'}</span>
+                        <span className="font-medium">{appointment.profiles?.full_name || 'Nome não informado'}</span>
                       </div>
                       {appointment.profiles?.phone && (
                         <div className="flex items-center gap-2 text-rose-nude-600">
@@ -352,7 +358,12 @@ const AppointmentsManager = () => {
                           <span>{appointment.profiles.phone}</span>
                         </div>
                       )}
+                      <div className="flex items-center gap-2 text-rose-nude-600">
+                        <Mail className="w-4 h-4" />
+                        <span className="text-xs">ID: {appointment.user_id.slice(0, 8)}...</span>
+                      </div>
                     </div>
+                    <p className="text-xs text-rose-nude-500 mt-2">Clique para ver evoluções e histórico</p>
                   </div>
 
                   {/* Observações */}

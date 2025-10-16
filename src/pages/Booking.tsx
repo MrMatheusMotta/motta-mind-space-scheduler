@@ -33,7 +33,7 @@ const Booking = () => {
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const timeSlots = useMemo(() => [
-    "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
+    "18:00", "19:00", "20:00", "21:00"
   ], []);
 
   const { availableSlots, loading: loadingSlots } = useAvailableTimeSlots(selectedDate, timeSlots);

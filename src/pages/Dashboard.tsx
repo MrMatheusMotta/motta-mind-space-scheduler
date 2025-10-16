@@ -1,10 +1,12 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
+import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, Users, Calendar, DollarSign, Clock, Star, AlertTriangle } from "lucide-react";
 
@@ -16,6 +18,41 @@ const Dashboard = () => {
     navigate('/');
     return null;
   }
+
+  const [realData, setRealData] = useState({
+    totalAppointments: 0,
+    activeClients: 0,
+    monthlyRevenue: 0,
+    appointmentsByMonth: [] as any[],
+  });
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Buscar todos os agendamentos
+      const { data: appointments, error } = await supabase
+        .from('appointments')
+        .select('*, profiles(full_name)');
+
+      if (error) throw error;
+
+      // Calcular métricas reais
+      const totalAppointments = appointments?.length || 0;
+      const uniqueClients = new Set(appointments?.map(a => a.user_id)).size;
+      
+      setRealData({
+        totalAppointments,
+        activeClients: uniqueClients,
+        monthlyRevenue: 0, // Pode ser calculado se houver dados de pagamento
+        appointmentsByMonth: [],
+      });
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+    }
+  };
 
   // Mock analytics data
   const monthlyRevenue = [
@@ -55,7 +92,7 @@ const Dashboard = () => {
     },
     {
       title: "Clientes Ativos",
-      value: "24",
+      value: realData.activeClients.toString(),
       change: "+3",
       trend: "up",
       icon: Users,

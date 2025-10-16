@@ -34,12 +34,27 @@ const EvolutionsManager = () => {
   const [evolutions, setEvolutions] = useState<Evolution[]>([]);
   const [loading, setLoading] = useState(false);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+
+  // Verificar se há um userId na URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('userId');
+    if (userId) {
+      setSelectedUserId(userId);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAppointments();
     fetchEvolutions();
     fetchProfiles();
   }, []);
+
+  // Filtrar evoluções quando selectedUserId muda
+  const filteredEvolutions = selectedUserId 
+    ? evolutions.filter(ev => ev.user_id === selectedUserId)
+    : evolutions;
 
   const fetchProfiles = async () => {
     const { data, error } = await supabase
@@ -184,15 +199,40 @@ const EvolutionsManager = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-rose-nude-800">Histórico de Evoluções</CardTitle>
+          <div className="text-sm text-rose-nude-600">
+            {selectedUserId 
+              ? `Mostrando evoluções do paciente ${profiles[selectedUserId] || 'Carregando...'}`
+              : 'Todas as evoluções registradas no sistema'
+            }
+          </div>
+          {selectedUserId && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                setSelectedUserId("");
+                window.history.pushState({}, '', '/admin-panel?tab=evolutions');
+              }}
+              className="mt-2"
+            >
+              Ver todas as evoluções
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {evolutions.length === 0 ? (
+            {filteredEvolutions.length === 0 ? (
+              <p className="text-center text-rose-nude-600 py-8">
+                {selectedUserId 
+                  ? 'Nenhuma evolução registrada para este paciente.'
+                  : 'Nenhuma evolução registrada ainda'
+                }
+              </p>
+            ) : (
+              filteredEvolutions.map((evolution) => {
               <p className="text-center text-rose-nude-600 py-8">
                 Nenhuma evolução registrada ainda
               </p>
-            ) : (
-              evolutions.map((evolution) => {
                 const appointment = appointments.find(a => a.id === evolution.appointment_id);
                 return (
                   <Card key={evolution.id} className="border-rose-nude-200">
