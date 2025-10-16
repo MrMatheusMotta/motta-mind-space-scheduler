@@ -28,28 +28,53 @@ const QuickPatientRegister = ({ open, onOpenChange, onPatientCreated }: QuickPat
       return;
     }
 
+    // Validar formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Por favor, insira um email válido");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Create auth user with random password (user will reset via email)
-      const tempPassword = Math.random().toString(36).slice(-12) + "Aa1!";
+      // Gerar senha temporária forte
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase() + "!1Aa";
       
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      console.log('Criando novo paciente:', { email, fullName });
+      
+      // Criar usuário com signUp (não precisa de permissões admin)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName
+        options: {
+          data: {
+            full_name: fullName
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
       if (authError) {
         console.error('Erro ao criar usuário:', authError);
-        toast.error(`Erro ao criar paciente: ${authError.message}`);
+        
+        // Tratamento de erros específicos
+        if (authError.message.includes('already registered')) {
+          toast.error('Este email já está cadastrado no sistema');
+        } else {
+          toast.error(`Erro ao criar paciente: ${authError.message}`);
+        }
         return;
       }
 
-      // Create profile
+      if (!authData.user) {
+        toast.error('Erro ao criar usuário - dados não retornados');
+        return;
+      }
+
+      console.log('Usuário criado:', authData.user.id);
+
+      // Criar perfil do paciente
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -61,11 +86,13 @@ const QuickPatientRegister = ({ open, onOpenChange, onPatientCreated }: QuickPat
 
       if (profileError) {
         console.error('Erro ao criar perfil:', profileError);
-        toast.error(`Erro ao criar perfil: ${profileError.message}`);
+        toast.error(`Erro ao criar perfil do paciente: ${profileError.message}`);
         return;
       }
 
-      toast.success("Paciente cadastrado com sucesso!");
+      console.log('Perfil criado com sucesso');
+      
+      toast.success(`Paciente ${fullName} cadastrado com sucesso! Email de confirmação enviado para ${email}`);
       onPatientCreated(authData.user.id, fullName);
       
       // Reset form
@@ -77,7 +104,7 @@ const QuickPatientRegister = ({ open, onOpenChange, onPatientCreated }: QuickPat
       
     } catch (error) {
       console.error('Erro inesperado:', error);
-      toast.error("Erro ao cadastrar paciente");
+      toast.error("Erro ao cadastrar paciente. Tente novamente.");
     } finally {
       setLoading(false);
     }
