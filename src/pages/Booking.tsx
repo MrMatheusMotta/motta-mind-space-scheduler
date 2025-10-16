@@ -108,22 +108,31 @@ const Booking = () => {
       
       console.log('Dados do agendamento:', appointmentData);
       
-      // Verificar se o horário está disponível (QUALQUER pessoa já agendou)
+      // CRÍTICO: Verificar se o horário está disponível antes de inserir
       const { data: existingAppointments, error: checkError } = await supabase
         .from('appointments')
-        .select('id')
+        .select('id, user_id, status')
         .eq('date', appointmentData.date)
         .eq('time', appointmentData.time)
         .in('status', ['agendado', 'confirmado']);
 
       if (checkError) {
         console.error('Erro ao verificar agendamentos:', checkError);
-        toast.error('Erro ao verificar disponibilidade');
+        toast.error('Erro ao verificar disponibilidade do horário');
+        setBookingLoading(false);
         return;
       }
 
+      console.log('Verificação de horário:', {
+        horario: appointmentData.time,
+        data: appointmentData.date,
+        agendamentosExistentes: existingAppointments
+      });
+
       if (existingAppointments && existingAppointments.length > 0) {
+        console.error('Horário já ocupado:', existingAppointments);
         toast.error('Este horário já está ocupado. Por favor, escolha outro horário disponível.');
+        setBookingLoading(false);
         return;
       }
       

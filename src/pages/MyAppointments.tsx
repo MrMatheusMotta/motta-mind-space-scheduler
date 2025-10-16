@@ -19,6 +19,12 @@ interface Appointment {
   status: string | null;
   notes: string | null;
   created_at: string;
+  user_id: string;
+  profiles?: {
+    full_name: string | null;
+    phone: string | null;
+    cpf: string | null;
+  };
 }
 
 const MyAppointments = () => {
@@ -63,25 +69,50 @@ const MyAppointments = () => {
     try {
       setLoading(true);
       
-      let query = supabase
+      // Primeiro buscar os agendamentos
+      let appointmentsQuery = supabase
         .from('appointments')
         .select('*');
       
-      // Se for admin, buscar todos os agendamentos. Se não, apenas os do usuário
+      // Se não for admin, filtrar por usuário
       if (!isAdmin()) {
-        query = query.eq('user_id', user?.id);
+        appointmentsQuery = appointmentsQuery.eq('user_id', user?.id);
       }
       
-      const { data, error } = await query.order('date', { ascending: true });
+      const { data: appointmentsData, error: appointmentsError } = await appointmentsQuery
+        .order('date', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching appointments:', error);
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
         toast.error("Erro ao carregar agendamentos");
         return;
       }
 
-      console.log(`📋 Fetched ${data?.length || 0} appointments for ${isAdmin() ? 'admin' : 'user'}`);
-      setAppointments(data || []);
+      // Buscar perfis dos usuários
+      if (appointmentsData && appointmentsData.length > 0) {
+        const userIds = [...new Set(appointmentsData.map(apt => apt.user_id))];
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, phone, cpf')
+          .in('id', userIds);
+
+        if (!profilesError && profilesData) {
+          // Combinar dados
+          const appointmentsWithProfiles = appointmentsData.map(apt => ({
+            ...apt,
+            profiles: profilesData.find(p => p.id === apt.user_id) || null
+          }));
+          
+          console.log(`📋 Fetched ${appointmentsWithProfiles.length} appointments with profiles`);
+          setAppointments(appointmentsWithProfiles);
+        } else {
+          console.log(`📋 Fetched ${appointmentsData.length} appointments without profiles`);
+          setAppointments(appointmentsData);
+        }
+      } else {
+        setAppointments([]);
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error("Erro ao carregar agendamentos");
@@ -225,7 +256,7 @@ const MyAppointments = () => {
                     <Card key={appointment.id} className="border-rose-nude-200 hover:shadow-lg transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start">
-                          <div className="space-y-3">
+                          <div className="space-y-3 flex-1">
                             <div className="flex items-center gap-3">
                               <h3 className="text-lg font-semibold text-rose-nude-800">
                                 {appointment.service}
@@ -234,6 +265,24 @@ const MyAppointments = () => {
                                 {appointment.status || 'agendado'}
                               </Badge>
                             </div>
+
+                            {/* Informações do Paciente/Usuário */}
+                            {appointment.profiles && (
+                              <div className="p-3 bg-rose-nude-50 rounded-lg border border-rose-nude-200">
+                                <h4 className="text-sm font-semibold text-rose-nude-800 mb-2">
+                                  {isAdmin() ? 'Informações do Paciente' : 'Seus Dados'}
+                                </h4>
+                                <div className="space-y-1 text-sm text-rose-nude-700">
+                                  <p><strong>Nome:</strong> {appointment.profiles.full_name || 'Não informado'}</p>
+                                  {appointment.profiles.phone && (
+                                    <p><strong>Telefone:</strong> {appointment.profiles.phone}</p>
+                                  )}
+                                  {appointment.profiles.cpf && (
+                                    <p><strong>CPF:</strong> {appointment.profiles.cpf}</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                             
                             <div className="flex items-center gap-6 text-sm text-rose-nude-600">
                               <div className="flex items-center gap-2">
@@ -257,7 +306,7 @@ const MyAppointments = () => {
                             </div>
                             
                             {appointment.notes && (
-                              <p className="text-sm text-rose-nude-600 bg-rose-nude-50 p-3 rounded">
+                              <p className="text-sm text-rose-nude-600 bg-amber-50 border border-amber-200 p-3 rounded">
                                 <strong>Observações:</strong> {appointment.notes}
                               </p>
                             )}
