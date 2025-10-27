@@ -38,62 +38,50 @@ const QuickPatientRegister = ({ open, onOpenChange, onPatientCreated }: QuickPat
     setLoading(true);
 
     try {
-      // Gerar senha temporária forte
-      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase() + "!1Aa";
+      console.log('Criando novo paciente via edge function:', { email, fullName });
       
-      console.log('Criando novo paciente:', { email, fullName });
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Criar usuário com signUp (não precisa de permissões admin)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: tempPassword,
-        options: {
-          data: {
-            full_name: fullName
-          },
-          emailRedirectTo: `${window.location.origin}/`
-        }
-      });
-
-      if (authError) {
-        console.error('Erro ao criar usuário:', authError);
-        
-        // Tratamento de erros específicos
-        if (authError.message.includes('already registered')) {
-          toast.error('Este email já está cadastrado no sistema');
-        } else {
-          toast.error(`Erro ao criar paciente: ${authError.message}`);
-        }
+      if (!session) {
+        toast.error('Você precisa estar autenticado para criar pacientes');
         return;
       }
 
-      if (!authData.user) {
-        toast.error('Erro ao criar usuário - dados não retornados');
-        return;
-      }
-
-      console.log('Usuário criado:', authData.user.id);
-
-      // Criar perfil do paciente
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          full_name: fullName,
+      // Chamar edge function para criar paciente (com privilégios de admin)
+      const response = await fetch('https://ovmldtiwaeffsdyremnj.supabase.co/functions/v1/create-patient', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          fullName,
           phone: phone || null,
           cpf: cpf || null
-        });
+        })
+      });
 
-      if (profileError) {
-        console.error('Erro ao criar perfil:', profileError);
-        toast.error(`Erro ao criar perfil do paciente: ${profileError.message}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Erro ao criar paciente:', result);
+        
+        if (result.error?.includes('already registered') || result.error?.includes('already exists')) {
+          toast.error('Este email já está cadastrado no sistema');
+        } else if (response.status === 403) {
+          toast.error('Acesso negado. Apenas administradores podem criar pacientes.');
+        } else {
+          toast.error(result.error || 'Erro ao criar paciente');
+        }
         return;
       }
 
-      console.log('Perfil criado com sucesso');
+      console.log('Paciente criado com sucesso:', result);
       
-      toast.success(`Paciente ${fullName} cadastrado com sucesso! Email de confirmação enviado para ${email}`);
-      onPatientCreated(authData.user.id, fullName);
+      toast.success(`Paciente ${fullName} cadastrado com sucesso!`);
+      onPatientCreated(result.userId, fullName);
       
       // Reset form
       setFullName("");
