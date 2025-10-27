@@ -281,6 +281,18 @@ const MyAppointments = () => {
                                     <p><strong>CPF:</strong> {appointment.profiles.cpf}</p>
                                   )}
                                 </div>
+                                {isAdmin() && (
+                                  <div className="mt-3">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-rose-nude-300 text-rose-nude-700"
+                                      onClick={() => navigate(`/admin-panel?tab=evolutions&userId=${appointment.user_id}`)}
+                                    >
+                                      Ver evoluções do paciente
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             )}
                             

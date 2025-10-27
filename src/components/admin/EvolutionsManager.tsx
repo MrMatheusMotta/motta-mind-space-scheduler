@@ -221,18 +221,7 @@ const EvolutionsManager = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredEvolutions.length === 0 ? (
-              <p className="text-center text-rose-nude-600 py-8">
-                {selectedUserId 
-                  ? 'Nenhuma evolução registrada para este paciente.'
-                  : 'Nenhuma evolução registrada ainda'
-                }
-              </p>
-            ) : (
-              filteredEvolutions.map((evolution) => {
-              <p className="text-center text-rose-nude-600 py-8">
-                Nenhuma evolução registrada ainda
-              </p>
+              {filteredEvolutions.map((evolution) => {
                 const appointment = appointments.find(a => a.id === evolution.appointment_id);
                 return (
                   <Card key={evolution.id} className="border-rose-nude-200">
@@ -262,8 +251,7 @@ const EvolutionsManager = () => {
                     </CardContent>
                   </Card>
                 );
-              })
-            )}
+              })}
           </div>
         </CardContent>
       </Card>

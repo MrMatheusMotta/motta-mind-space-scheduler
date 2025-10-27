@@ -214,14 +214,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
-      is_admin_by_email: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin: { Args: { user_email: string }; Returns: boolean }
+      is_admin_by_email: { Args: never; Returns: boolean }
       is_slot_available: {
         Args: {
           check_date: string

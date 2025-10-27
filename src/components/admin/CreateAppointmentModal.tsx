@@ -102,22 +102,21 @@ const CreateAppointmentModal = ({ onAppointmentCreated }: { onAppointmentCreated
     try {
       const selectedServiceData = settings.services.find(s => s.id.toString() === selectedService);
       
-      // Verificar se o horário está disponível
+      // Verificar disponibilidade via RPC (bypass RLS)
       const checkDate = format(selectedDate, 'yyyy-MM-dd');
-      const { data: existingAppointments, error: checkError } = await supabase
-        .from('appointments')
-        .select('id')
-        .eq('date', checkDate)
-        .eq('time', selectedTime)
-        .in('status', ['agendado', 'confirmado']);
+      const { data: isFree, error: rpcError } = await supabase.rpc('is_slot_available', {
+        check_date: checkDate,
+        check_time: `${selectedTime}:00`,
+        exclude_appointment_id: null
+      });
 
-      if (checkError) {
-        console.error('Erro ao verificar disponibilidade:', checkError);
+      if (rpcError) {
+        console.error('Erro ao verificar disponibilidade (RPC):', rpcError);
         toast.error('Erro ao verificar disponibilidade do horário');
         return;
       }
 
-      if (existingAppointments && existingAppointments.length > 0) {
+      if (!isFree) {
         toast.error('Este horário já está ocupado. Por favor, escolha outro horário.');
         return;
       }

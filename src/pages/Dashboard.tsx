@@ -25,6 +25,7 @@ const Dashboard = () => {
     monthlyRevenue: 0,
     appointmentsByMonth: [] as any[],
   });
+  const [recentAppointments, setRecentAppointments] = useState<{id:string; user_id:string; service:string; date:string; time:string; name:string}[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -32,17 +33,44 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Buscar todos os agendamentos
-      const { data: appointments, error } = await supabase
+      const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select('*, profiles(full_name)');
+        .select('*');
 
-      if (error) throw error;
+      if (appointmentsError) throw appointmentsError;
 
-      // Calcular métricas reais
-      const totalAppointments = appointments?.length || 0;
-      const uniqueClients = new Set(appointments?.map(a => a.user_id)).size;
-      
+      const totalAppointments = appointmentsData?.length || 0;
+      const uniqueClients = new Set(appointmentsData?.map(a => a.user_id)).size;
+
+      // Últimos agendamentos (com nomes)
+      const { data: recentData, error: recentError } = await supabase
+        .from('appointments')
+        .select('id, user_id, service, date, time')
+        .order('created_at', { ascending: false })
+        .limit(8);
+
+      if (recentError) throw recentError;
+
+      const recentUserIds = [...new Set((recentData || []).map(r => r.user_id))];
+      let namesMap: Record<string, string> = {};
+      if (recentUserIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', recentUserIds);
+        if (!profilesError && profilesData) {
+          namesMap = profilesData.reduce((acc, p) => {
+            acc[p.id] = p.full_name || 'Sem nome';
+            return acc;
+          }, {} as Record<string, string>);
+        }
+      }
+
+      setRecentAppointments((recentData || []).map(r => ({
+        ...r,
+        name: namesMap[r.user_id] || 'Sem nome',
+      })));
+
       setRealData({
         totalAppointments,
         activeClients: uniqueClients,
@@ -239,6 +267,33 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Últimos Agendamentos */}
+          <Card className="border-rose-nude-200 mb-8">
+            <CardHeader>
+              <CardTitle className="text-rose-nude-800">Últimos agendamentos</CardTitle>
+              <CardDescription className="text-rose-nude-600">Clique no paciente para ver evoluções</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {recentAppointments.length === 0 ? (
+                <p className="text-rose-nude-600">Sem agendamentos recentes</p>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {recentAppointments.map((a) => (
+                    <button
+                      key={a.id}
+                      onClick={() => navigate(`/admin-panel?tab=evolutions&userId=${a.user_id}`)}
+                      className="text-left p-3 rounded-lg border border-rose-nude-200 bg-rose-nude-50 hover:bg-rose-nude-100 transition-colors"
+                    >
+                      <div className="text-sm font-medium text-rose-nude-800">{a.name}</div>
+                      <div className="text-xs text-rose-nude-600">{a.service}</div>
+                      <div className="text-xs text-rose-nude-600">{new Date(a.date + 'T00:00:00').toLocaleDateString('pt-BR')} às {a.time.slice(0,5)}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Weekly Schedule */}
           <div className="grid lg:grid-cols-3 gap-8 mb-8">

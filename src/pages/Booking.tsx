@@ -108,30 +108,22 @@ const Booking = () => {
       
       console.log('Dados do agendamento:', appointmentData);
       
-      // CRÍTICO: Verificar se o horário está disponível antes de inserir
-      const { data: existingAppointments, error: checkError } = await supabase
-        .from('appointments')
-        .select('id, user_id, status')
-        .eq('date', appointmentData.date)
-        .eq('time', appointmentData.time)
-        .in('status', ['agendado', 'confirmado']);
+      // Verificação de disponibilidade (bypass RLS) via RPC
+      const { data: isFree, error: rpcError } = await supabase.rpc('is_slot_available', {
+        check_date: appointmentData.date,
+        check_time: `${appointmentData.time}:00`,
+        exclude_appointment_id: null
+      });
 
-      if (checkError) {
-        console.error('Erro ao verificar agendamentos:', checkError);
+      if (rpcError) {
+        console.error('Erro ao verificar disponibilidade (RPC):', rpcError);
         toast.error('Erro ao verificar disponibilidade do horário');
         setBookingLoading(false);
         return;
       }
 
-      console.log('Verificação de horário:', {
-        horario: appointmentData.time,
-        data: appointmentData.date,
-        agendamentosExistentes: existingAppointments
-      });
-
-      if (existingAppointments && existingAppointments.length > 0) {
-        console.error('Horário já ocupado:', existingAppointments);
-        toast.error('Este horário já está ocupado. Por favor, escolha outro horário disponível.');
+      if (!isFree) {
+        toast.error('Este horário já está ocupado. Por favor, escolha outro horário.');
         setBookingLoading(false);
         return;
       }
