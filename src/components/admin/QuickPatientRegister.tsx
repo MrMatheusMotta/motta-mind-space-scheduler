@@ -48,32 +48,25 @@ const QuickPatientRegister = ({ open, onOpenChange, onPatientCreated }: QuickPat
         return;
       }
 
-      // Chamar edge function para criar paciente (com privilégios de admin)
-      const response = await fetch('https://ovmldtiwaeffsdyremnj.supabase.co/functions/v1/create-patient', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Chamar edge function via Supabase Functions
+      const { data: result, error: invokeError } = await supabase.functions.invoke('create-patient', {
+        body: {
           email,
           fullName,
           phone: phone || null,
           cpf: cpf || null
-        })
+        }
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('Erro ao criar paciente:', result);
-        
-        if (result.error?.includes('already registered') || result.error?.includes('already exists')) {
+      if (invokeError) {
+        console.error('Erro ao criar paciente:', invokeError);
+        const msg = (invokeError as any).message || '';
+        if (msg.includes('already registered') || msg.includes('already exists')) {
           toast.error('Este email já está cadastrado no sistema');
-        } else if (response.status === 403) {
+        } else if ((invokeError as any).status === 403) {
           toast.error('Acesso negado. Apenas administradores podem criar pacientes.');
         } else {
-          toast.error(result.error || 'Erro ao criar paciente');
+          toast.error(msg || 'Erro ao criar paciente');
         }
         return;
       }

@@ -36,9 +36,13 @@ serve(async (req) => {
       });
     }
 
-    // Verificar se o usuário é admin
+    // Verificar se o usuário é admin pelo email
     const { data: isAdminData, error: adminError } = await supabaseAdmin
-      .rpc('is_admin_by_email');
+      .rpc('is_admin', { user_email: user.email as string });
+
+    if (adminError) {
+      console.error('Erro ao verificar admin:', adminError);
+    }
 
     if (adminError || !isAdminData) {
       return new Response(JSON.stringify({ error: 'Acesso negado. Apenas administradores podem criar pacientes.' }), {
