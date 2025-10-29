@@ -12,13 +12,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Clock, MapPin, Video, CheckCircle } from "lucide-react";
+import { CalendarIcon, Clock, MapPin, Video, CheckCircle, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminSettings } from "@/hooks/useAdminSettings";
 import { useAvailableTimeSlots } from "@/hooks/useAvailableTimeSlots";
+import QuickPatientRegister from "@/components/admin/QuickPatientRegister";
+
+interface Profile {
+  id: string;
+  full_name: string;
+  phone: string;
+}
 
 const Booking = () => {
   const { user, isAdmin, isLoading } = useAuth();
@@ -31,6 +38,10 @@ const Booking = () => {
   const [notes, setNotes] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [patients, setPatients] = useState<Profile[]>([]);
+  const [showQuickRegister, setShowQuickRegister] = useState(false);
+  const [loadingPatients, setLoadingPatients] = useState(false);
 
   const timeSlots = useMemo(() => [
     "18:00", "19:00", "20:00", "21:00"
@@ -43,6 +54,42 @@ const Booking = () => {
       navigate("/login");
     }
   }, [user, isLoading, navigate]);
+
+  // Buscar pacientes se for admin
+  useEffect(() => {
+    if (isAdmin() && user) {
+      fetchPatients();
+    }
+  }, [user]);
+
+  const fetchPatients = async () => {
+    setLoadingPatients(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .order('full_name');
+
+      if (error) {
+        console.error('Erro ao buscar pacientes:', error);
+        toast.error('Erro ao carregar lista de pacientes');
+        return;
+      }
+
+      setPatients(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar pacientes:', error);
+      toast.error('Erro ao carregar lista de pacientes');
+    } finally {
+      setLoadingPatients(false);
+    }
+  };
+
+  const handlePatientCreated = (userId: string, name: string) => {
+    setSelectedPatientId(userId);
+    toast.success(`Paciente ${name} selecionado para o agendamento`);
+    fetchPatients(); // Recarregar lista
+  };
 
   // Show loading state while auth is loading
   if (isLoading) {
@@ -86,6 +133,12 @@ const Booking = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validações
+    if (isAdmin() && !selectedPatientId) {
+      toast.error("Selecione um paciente para o agendamento");
+      return;
+    }
+    
     if (!selectedDate || !selectedTime || !selectedService || (!selectedType && selectedService !== "1")) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
@@ -97,13 +150,14 @@ const Booking = () => {
       const selectedServiceData = settings.services.find(s => s.id === selectedService);
       
       const appointmentData = {
-        user_id: user?.id,
+        user_id: isAdmin() ? selectedPatientId : user?.id,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
         service: selectedServiceData?.name || 'Serviço não encontrado',
         status: 'agendado',
         type: selectedService === "1" ? null : selectedType,
-        notes: notes.trim() || null
+        notes: notes.trim() || null,
+        created_by_admin: isAdmin() ? user?.id : null
       };
       
       console.log('Dados do agendamento:', appointmentData);
@@ -213,6 +267,39 @@ const Booking = () => {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    {isAdmin() && (
+                      <div className="space-y-3 pb-4 border-b border-rose-nude-200">
+                        <Label className="text-rose-nude-700 font-medium">Paciente *</Label>
+                        <div className="flex gap-2">
+                          <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+                            <SelectTrigger className="border-rose-nude-200 flex-1">
+                              <SelectValue placeholder={loadingPatients ? "Carregando pacientes..." : "Selecione o paciente"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {patients.map((patient) => (
+                                <SelectItem key={patient.id} value={patient.id}>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{patient.full_name}</span>
+                                    {patient.phone && (
+                                      <span className="text-sm text-rose-nude-600">{patient.phone}</span>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowQuickRegister(true)}
+                            className="border-rose-nude-300 hover:bg-rose-nude-50"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-3">
                       <Label className="text-rose-nude-700 font-medium">Tipo de Serviço *</Label>
                       <Select value={selectedService} onValueChange={setSelectedService}>
@@ -446,6 +533,12 @@ const Booking = () => {
           </div>
         </div>
       </div>
+
+      <QuickPatientRegister
+        open={showQuickRegister}
+        onOpenChange={setShowQuickRegister}
+        onPatientCreated={handlePatientCreated}
+      />
     </div>
   );
 };
