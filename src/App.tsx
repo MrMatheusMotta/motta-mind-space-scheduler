@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import About from "./pages/About";
 import VideoCall from "./pages/VideoCall";
 import MyAppointments from "./pages/MyAppointments";
+import PatientEvolutions from "./pages/PatientEvolutions";
 import NotFound from "./pages/NotFound";
 import DebugAuth from "./components/DebugAuth";
 
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/videocall" element={<VideoCall />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
+            <Route path="/patient-evolutions" element={<PatientEvolutions />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <DebugAuth />

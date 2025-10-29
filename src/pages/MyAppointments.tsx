@@ -287,7 +287,7 @@ const MyAppointments = () => {
                                       variant="outline"
                                       size="sm"
                                       className="border-rose-nude-300 text-rose-nude-700"
-                                      onClick={() => navigate(`/admin-panel?tab=evolutions&userId=${appointment.user_id}`)}
+                                      onClick={() => navigate(`/patient-evolutions?userId=${appointment.user_id}`)}
                                     >
                                       Ver evoluções do paciente
                                     </Button>
